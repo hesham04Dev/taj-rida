@@ -1,0 +1,20 @@
+{
+    "agents": [
+        "gemini",
+        "claude_code",
+        "amp",
+        "cursor",
+        "copilot"
+    ],
+    "guidelines": true,
+    "mcp": true,
+    "nightwatch_mcp": false,
+    "sail": false,
+    "skills": [
+        "laravel-best-practices",
+        "fluxui-development",
+        "livewire-development",
+        "pest-testing",
+        "tailwindcss-development"
+    ]
+}
