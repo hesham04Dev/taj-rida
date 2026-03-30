@@ -126,6 +126,22 @@
             height: 4px;
             opacity: 0.8;
         }
+
+        .sura-percent {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-lime);
+            margin: 2px 0;
+        }
+
+        .sura-reps {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
     </style>
 
     <div class="sura-container">
@@ -169,6 +185,21 @@
                     <div class="sura-name">{{ $sura->name }}</div>
                     
                     <div class="sura-ayas">{{ $sura->ayas_count }} آية</div>
+
+                    @if($sura->memorization_percent > 0 && $sura->memorization_percent < 100)
+                        <div class="sura-percent">{{ $sura->memorization_percent }}%</div>
+                    @endif
+
+                    @if($sura->memorization_repetition > 0 || $sura->revision_repetition > 0)
+                        <div class="sura-reps" dir="rtl">
+                            @if($sura->memorization_repetition > 0)
+                                <span title="مرات الحفظ">⟳{{ $sura->memorization_repetition }}</span>
+                            @endif
+                            @if($sura->revision_repetition > 0)
+                                <span title="مرات المراجعة" style="color: #32CD32">↺{{ $sura->revision_repetition }}</span>
+                            @endif
+                        </div>
+                    @endif
                     
                     {{-- Visual indicator --}}
                     <div class="status-indicator" style="background-color: {{ $color }}"></div>

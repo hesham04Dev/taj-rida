@@ -3,31 +3,27 @@
 namespace App\Filament\Resources\Students\Pages;
 
 use App\Filament\Resources\Students\StudentResource;
+use App\Models\Memorization;
 use App\Models\Student;
 use App\Models\Sura;
-use App\Models\Recitation;
-use App\Models\Revision;
-use Filament\Resources\Pages\Page;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
+use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
-use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
-use Filament\Forms\Components\Select;
-// use Filament\Forms\Components\Grid;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Resources\Pages\Page;
 use Filament\Schemas\Components\Grid;
-use Carbon\Carbon;
 
-class StudentSuraTracker extends Page implements HasForms, HasActions
+class StudentSuraTracker extends Page implements HasActions, HasForms
 {
-    use InteractsWithForms;
     use InteractsWithActions;
+    use InteractsWithForms;
 
     protected static string $resource = StudentResource::class;
 
-    protected  string $view = 'filament.resources.students.pages.student-sura-tracker';
+    protected string $view = 'filament.resources.students.pages.student-sura-tracker';
 
     public Student $record;
 
@@ -38,44 +34,46 @@ class StudentSuraTracker extends Page implements HasForms, HasActions
 
     public function getTitle(): string
     {
-        return 'متابعة السور: ' . $this->record->name;
+        return 'متابعة السور: '.$this->record->name;
     }
 
     public function getSurasProperty()
     {
         $suras = Sura::orderBy('id', 'asc')->get();
-        
-        $recitations = Recitation::where('student_id', $this->record->id)->get()->groupBy('sura_id');
-        $revisions = Revision::where('student_id', $this->record->id)->get()->groupBy('sura_id');
 
-        return $suras->map(function($sura) use ($recitations, $revisions) {
-            $suraRecitations = $recitations->get($sura->id, collect());
-            $suraRevisions = $revisions->get($sura->id, collect());
+        $memorizations = Memorization::where('student_id', $this->record->id)
+            ->get()
+            ->keyBy('sura_id');
 
-            $latestRecitation = $suraRecitations->sortByDesc('date')->first();
-            $latestRevision = $suraRevisions->sortByDesc('date')->first();
+        return $suras->map(function ($sura) use ($memorizations) {
+            $mem = $memorizations->get($sura->id);
 
-            $status = 'gray'; // not memorized
-            
-            if ($latestRecitation) {
-                if ($latestRecitation->grade === 'ممتاز') {
+            $status = 'gray';
+            $percent = 0;
+
+            if ($mem) {
+                $percent = $sura->ayas_count > 0
+                    ? round(($mem->memorized_ayas / $sura->ayas_count) * 100)
+                    : 0;
+
+                if ($mem->revision_degree === 'ممتاز') {
+                    $status = 'lime_green';
+                } elseif (in_array($mem->revision_degree, ['جيد جدا', 'جيد'])) {
+                    $status = 'dark_green';
+                } elseif ($mem->memorization_degree === 'ممتاز') {
                     $status = 'light_blue';
-                } elseif ($latestRecitation->grade === 'جيد جدا' || $latestRecitation->grade === 'جيد') {
+                } elseif (in_array($mem->memorization_degree, ['جيد جدا', 'جيد'])) {
                     $status = 'blue';
-                } else {
+                } elseif ($mem->memorization_degree) {
                     $status = 'yellow';
                 }
             }
 
-            if ($latestRevision) {
-                if ($latestRevision->grade === 'ممتاز') {
-                    $status = 'lime_green'; // overrides recitation!
-                } elseif ($latestRevision->grade === 'جيد جدا' || $latestRevision->grade === 'جيد') {
-                    $status = 'dark_green';
-                }
-            }
-
             $sura->status_color = $status;
+            $sura->memorization_percent = $percent;
+            $sura->memorization_repetition = $mem?->memorization_repetition ?? 0;
+            $sura->revision_repetition = $mem?->revision_repetition ?? 0;
+
             return $sura;
         });
     }
@@ -85,12 +83,12 @@ class StudentSuraTracker extends Page implements HasForms, HasActions
         return Action::make('addLog')
             ->label('تحديث الإنجاز')
             ->icon('heroicon-o-plus')
-            ->modalHeading(fn (array $arguments) => 'تسجيل إنجاز - سورة ' . Sura::find($arguments['sura'] ?? 1)->name)
+            ->modalHeading(fn (array $arguments) => 'تسجيل إنجاز - سورة '.Sura::find($arguments['sura'] ?? 1)?->name)
             ->schema([
-               ToggleButtons::make('type')
+                ToggleButtons::make('type')
                     ->label('النوع')
                     ->options([
-                        'recitation' => 'تسميع جديد (حفظ)',
+                        'memorization' => 'تسميع جديد (حفظ)',
                         'revision' => 'مراجعة',
                     ])
                     ->inline()
@@ -101,12 +99,11 @@ class StudentSuraTracker extends Page implements HasForms, HasActions
                             ->label('من آية')
                             ->numeric()
                             ->default(1)
-                            // ->columnSpan(1)
                             ->required(),
                         TextInput::make('to_aya')
-    ->label('إلى آية')
-    ->numeric()
-    ->required(),
+                            ->label('إلى آية')
+                            ->numeric()
+                            ->required(),
                     ]),
                 ToggleButtons::make('grade')
                     ->label('التقييم')
@@ -117,41 +114,37 @@ class StudentSuraTracker extends Page implements HasForms, HasActions
                         'مقبول' => 'مقبول',
                         'ضعيف' => 'ضعيف',
                     ])
-                    
                     ->inline()
                     ->required(),
-            ])->fillForm(function (array $arguments): array {
-            $sura = Sura::find($arguments['sura'] ?? 1);
-            
-            return [
-                'from_aya' => 1,
-                'to_aya' => $sura?->ayas_count ?? 1,
-                'type' => 'recitation', 
-                'grade' => 'ممتاز'
-            ];
-        })
+            ])
+            ->fillForm(function (array $arguments): array {
+                $sura = Sura::find($arguments['sura'] ?? 1);
+
+                return [
+                    'from_aya' => 1,
+                    'to_aya' => $sura?->ayas_count ?? 1,
+                    'type' => 'memorization',
+                    'grade' => 'ممتاز',
+                ];
+            })
             ->action(function (array $data, array $arguments) {
                 $suraId = $arguments['sura'];
-                if ($data['type'] === 'recitation') {
-                    Recitation::create([
-                        'student_id' => $this->record->id,
-                        'sura_id' => $suraId,
-                        'from_aya' => $data['from_aya'],
-                        'to_aya' => $data['to_aya'],
-                        'grade' => $data['grade'],
-                        'date' => Carbon::now(),
-                    ]);
+
+                $memorization = Memorization::firstOrNew([
+                    'student_id' => $this->record->id,
+                    'sura_id' => $suraId,
+                ]);
+
+                if ($data['type'] === 'memorization') {
+                    $memorization->memorized_ayas = $data['to_aya'];
+                    $memorization->memorization_degree = $data['grade'];
+                    $memorization->memorization_repetition = ($memorization->memorization_repetition ?? 0) + 1;
                 } else {
-                    Revision::create([
-                        'student_id' => $this->record->id,
-                        'sura_id' => $suraId,
-                        'from_aya' => $data['from_aya'],
-                        'to_aya' => $data['to_aya'],
-                        'grade' => $data['grade'],
-                        'date' => Carbon::now(),
-                    ]);
-                   
+                    $memorization->revision_degree = $data['grade'];
+                    $memorization->revision_repetition = ($memorization->revision_repetition ?? 0) + 1;
                 }
+
+                $memorization->save();
             });
     }
 }

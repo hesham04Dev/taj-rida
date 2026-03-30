@@ -3,18 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sura extends Model
 {
     protected $guarded = [];
 
-    public function recitations()
+    public function memorizations(): HasMany
     {
-        return $this->hasMany(Recitation::class);
-    }
-
-    public function revisions()
-    {
-        return $this->hasMany(Revision::class);
+        return $this->hasMany(Memorization::class);
     }
 }
