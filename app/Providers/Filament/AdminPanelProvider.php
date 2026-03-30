@@ -27,11 +27,12 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('app')
+            ->brandLogo(fn () => view('filament.app.logo'))
             ->login()
             ->colors([
                 'primary' => Color::Teal,
             ])
-            ->font('Tajawal')
+            ->font('Cairo')
             ->userMenuItems([
                 // \Filament\Navigation\MenuItem::make()
                 //     ->label('English')
