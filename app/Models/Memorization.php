@@ -9,6 +9,15 @@ class Memorization extends Model
 {
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return [
+            'is_need_rememorisation' => 'boolean',
+            'update_date' => 'date',
+            'test_counts' => 'integer',
+        ];
+    }
+
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
