@@ -104,6 +104,18 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                     ])
                     ->inline()
                     ->required()->live(),
+                Grid::make(2)
+                    ->schema([
+                        TextInput::make('from_aya')
+                            ->label('من آية')
+                            ->numeric()
+                            ->default(1)
+                            ->required(),
+                        TextInput::make('to_aya')
+                            ->label('إلى آية')
+                            ->numeric()
+                            ->required(),
+                    ]),
                 ToggleButtons::make('grade')
                     ->label('التقييم')
                     ->options([
@@ -123,11 +135,13 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                 
             ])
             ->fillForm(function (array $arguments): array {
+                 $sura = Sura::find($arguments['sura'] ?? 1);
                 return [
                     'type' => 'memorization',
                     'grade' => 'ممتاز',
                     'is_need_rememorisation' => false,
-                    'update_date' => now(),
+                    'from_aya' => 1,
+                    'to_aya' => $sura?->ayas_count ?? 1,
                 ];
             })
             ->action(function (array $data, array $arguments) {
@@ -146,7 +160,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                     'sura_id' => $suraId,
                 ]);
 
-                $memorization->memorized_ayas = $sura->ayas_count;
+                $memorization->memorized_ayas =  $data['to_aya'];;
 
                 if ($data['type'] === 'memorization') {
                     $memorization->memorization_degree = $data['grade'];
