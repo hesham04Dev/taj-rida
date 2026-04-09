@@ -9,7 +9,7 @@ use App\Filament\Resources\Students\Pages\StudentSuraTracker;
 use App\Filament\Resources\Students\Pages\ViewStudent;
 use App\Filament\Resources\Students\RelationManagers\AttendancesRelationManager;
 use App\Filament\Resources\Students\RelationManagers\MemorizationsRelationManager;
-use App\Filament\Resources\Students\RelationManagers\PageLogsRelationManager;
+// use App\Filament\Resources\Students\RelationManagers\PageLogsRelationManager;
 use App\Filament\Resources\Students\RelationManagers\PointTransactionsRelationManager;
 use App\Filament\Resources\Students\RelationManagers\StudentNotesRelationManager;
 use App\Filament\Resources\Students\Schemas\StudentForm;
@@ -57,7 +57,7 @@ class StudentResource extends Resource
     {
         return [
             MemorizationsRelationManager::class,
-            PageLogsRelationManager::class,
+            // PageLogsRelationManager::class,
             AttendancesRelationManager::class,
             PointTransactionsRelationManager::class,
             StudentNotesRelationManager::class,

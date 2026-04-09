@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('suras', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('ayas_count');
+            $table->float('pages_count');
+            $table->float("from_page");
+            $table->float("to_page");
             $table->timestamps();
         });
     }

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('student_id')->constrained()->cascadeOnDelete();
             $table->string('type');
+            $table->string('from_page');
+            $table->float("to_page");
             $table->float('count');
             $table->date('date');
             $table->timestamps();

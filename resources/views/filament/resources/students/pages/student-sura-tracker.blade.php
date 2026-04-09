@@ -123,7 +123,7 @@
             color: var(--accent-lime);
         }
 
-        .sura-ayas {
+        .sura-pages {
             font-size: 11px;
             color: var(--text-secondary);
             background: rgba(0, 0, 0, 0.03);
@@ -132,7 +132,7 @@
             align-self: center;
         }
 
-        .dark .sura-ayas {
+        .dark .sura-pages {
             background: rgba(255, 255, 255, 0.05);
         }
 
@@ -283,7 +283,7 @@
 
                         <div class="sura-name">{{ $sura->name }}</div>
 
-                        <div class="sura-ayas">{{ $sura->ayas_count }} آية</div>
+                        <div class="sura-pages">{{ $sura->pages_count }} صفحة</div>
 
                         @if($sura->memorization_percent > 0 && $sura->memorization_percent < 100)
                             <div class="sura-percent">{{ $sura->memorization_percent }}%</div>

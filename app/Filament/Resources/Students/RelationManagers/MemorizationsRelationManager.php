@@ -47,12 +47,12 @@ class MemorizationsRelationManager extends RelationManager
                     ->afterStateUpdated(function (Get $get, callable $set, $state) {
                         $sura = Sura::find($state);
                         if ($sura) {
-                            $set('memorized_ayas', $sura->ayas_count);
+                            $set('memorized_pages', $sura->pages_count);
                         }
                     }),
                 Grid::make(3)->schema([
-                    TextInput::make('memorized_ayas')
-                        ->label('عدد الآيات المحفوظة')
+                    TextInput::make('memorized_pages')
+                        ->label('عدد الصفحات المحفوظة')
                         ->numeric()
                         ->default(0)
                         ->required(),
@@ -113,35 +113,7 @@ class MemorizationsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('sura.name')
-            // ->columns([
-            //     TextColumn::make('sura.name')
-            //         ->label('السورة')
-            //         ->sortable()
-            //         ->searchable(),
-            //     TextColumn::make('memorization_percent')
-            //         ->label('نسبة الحفظ')
-            //         ->getStateUsing(fn ($record) => $record->sura
-            //             ? round(($record->memorized_ayas / $record->sura->ayas_count) * 100).'%'
-            //             : '-'
-            //         )
-            //         ->badge()
-            //         ->color(fn ($record) => $record->sura && $record->memorized_ayas >= $record->sura->ayas_count ? 'success' : 'warning'),
-            //     TextColumn::make('memorization_degree')->label('درجة الحفظ')->badge()->color('info'),
-            //     TextColumn::make('memorization_repetition')->label('حفظ (مرات)')->badge()->color('gray'),
-            //     TextColumn::make('revision_degree')->label('درجة المراجعة')->badge()->color('success'),
-            //     TextColumn::make('revision_repetition')->label('مراجعة (مرات)')->badge()->color('gray'),
-            
-            //     TextColumn::make('test_grade')->label('درجة الاختبار')->badge()->color('primary'),
-            //     TextColumn::make('test_counts')->label('اختبار (مرات)')->badge()->color('gray'),
-            //     TextColumn::make("last_test_name")->label("اسم آخر اختبار"),
-            //     TextColumn::make('is_need_rememorisation')
-            //         ->label('إعادة حفظ')
-            //         ->badge()
-            //         ->color(fn ($state) => $state ? 'danger' : 'gray')
-            //         ->formatStateUsing(fn ($state) => $state ? 'نعم' : 'لا'),
-            //     TextColumn::make('updated_at')->label('تحديث')->date('Y-m-d'),
-            // ])
-            
+  
        ->contentGrid([
     'sm' => 1,
     'md' => 2,
@@ -164,11 +136,11 @@ class MemorizationsRelationManager extends RelationManager
             
             TextColumn::make('memorization_percent')
                 ->getStateUsing(fn ($record) => $record->sura 
-                    ? round(($record->memorized_ayas / $record->sura->ayas_count) * 100).'%' 
+                    ? round(($record->memorized_pages / $record->sura->pages_count) * 100).'%' 
                     : '0%')
                 ->badge()
                 ->size('xl')
-                ->color(fn ($record) => $record->memorized_ayas >= ($record->sura->ayas_count ?? 0) ? 'success' : 'warning')
+                ->color(fn ($record) => $record->memorized_pages >= ($record->sura->pages_count ?? 0) ? 'success' : 'warning')
                 ->grow(false),
         ])->extraAttributes(['class' => 'mb-3']),
 

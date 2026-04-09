@@ -27,11 +27,11 @@ class RecitationsRelationManager extends RelationManager
                     ->label('السورة')
                     ->required()
                     ->searchable(),
-                Forms\Components\TextInput::make('from_aya')
+                Forms\Components\TextInput::make('from_page')
                     ->label('من آية')
                     ->numeric()
                     ->required(),
-                Forms\Components\TextInput::make('to_aya')
+                Forms\Components\TextInput::make('to_page')
                     ->label('إلى آية')
                     ->numeric()
                     ->required(),
@@ -51,8 +51,8 @@ class RecitationsRelationManager extends RelationManager
             ->recordTitleAttribute('id')
             ->columns([
                 Tables\Columns\TextColumn::make('sura.name')->label('السورة'),
-                Tables\Columns\TextColumn::make('from_aya')->label('من آية'),
-                Tables\Columns\TextColumn::make('to_aya')->label('إلى آية'),
+                Tables\Columns\TextColumn::make('from_page')->label('من صفحة'),
+                Tables\Columns\TextColumn::make('to_page')->label('إلى صفحة'),
                 Tables\Columns\TextColumn::make('grade')->label('التقييم'),
                 Tables\Columns\TextColumn::make('date')->label('التاريخ')->date(),
             ])
