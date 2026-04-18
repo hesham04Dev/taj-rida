@@ -98,6 +98,9 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                 Toggle::make('is_need_rememorisation')
                     ->label('يحتاج لإعادة حفظ')
                     ->default(false),
+                Toggle::make('is_no_points')
+                    ->label('بدون نقاط')
+                    ->default(false),
                 ToggleButtons::make('type')
                     ->label('النوع')
                     ->options([
@@ -209,6 +212,9 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                     Toggle::make('is_need_rememorisation')
                         ->label('يحتاج لإعادة حفظ')
                         ->default(false),
+                    Toggle::make('is_no_points')
+                        ->label('بدون نقاط')
+                        ->default(false),
                     TextEntry::make('selected_suras_names')
                         ->label('السور المحددة'),
                     TextEntry::make('selected_suras_names_content')
@@ -260,6 +266,8 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                                 'student_id' => $this->record->id,
                                 'sura_id' => $suraId,
                             ]);
+                            $data['from_page'] = $memorization->sura->from_page;
+                            $data['to_page'] = $data['from_page'] + $memorization->sura->pages_count;
 
                             $memorization->memorized_pages = $sura->pages_count; // always full
 
@@ -299,14 +307,6 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
     {
 
         $isNoPoints = $data['is_no_points'] ?? false;
-
-        if (! isset($data['from_page'])) {
-            $data['from_page'] = $memorization->sura->from_page;
-        }
-        if (! isset($data['to_page'])) {
-            $data['to_page'] = $data['from_page'] + $memorization->sura->pages_count;
-
-        }
 
         if ($data['type'] == 'memorization' && (($memorization['memorization_repetition'] ?? 0) > 1)) {
             $isNoPoints = true;

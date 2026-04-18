@@ -27,7 +27,10 @@ x make it production ready
 )
 [x] add multi select for the suras  (so i can add multi memorization at once note from , to is always from the first aya to the last one foreach sura please consider that you should get the ayas_count from the suras table and put it in to feild) 
 
-[ ] get points for the pages that memorized , tested , revisioned
-[ ] add feild for the test points and make the giving point optional in test ()
+[x] get points for the pages that memorized , tested , revisioned
+[x] add feild for the test points and make the giving point optional in test ()
 [ ] make the page log for only see the log for the memorization table 
-[ ] note the points gived should be only for the pages that is not memorized yet eg: if student memorize from 1 -> 10 in 07-04-2026 and in 08-04-2026 he memorized from 1->20 he only get points from 10 -> 20 (the last number (10) is stored in the memorization memorized_pages)
+[x] note the points gived should be only for the pages that is not memorized yet eg: if student memorize from 1 -> 10 in 07-04-2026 and in 08-04-2026 he memorized from 1->20 he only get points from 10 -> 20 (the last number (10) is stored in the memorization memorized_pages)
+
+[ ]return the relation of the page log to show the page log
+[ ] preferd add a real links between the memorization so if edited the amount of points should re edited or idk
