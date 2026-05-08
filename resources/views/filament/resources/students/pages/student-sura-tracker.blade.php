@@ -189,6 +189,46 @@
             height: 20px;
         }
 
+        .sura-rememorize-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 10;
+            background-color: #f97316;
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 9999px;
+            letter-spacing: 0.05em;
+            animation: pulse-orange 1.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-orange {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.75; transform: scale(1.08); }
+        }
+
+        .sura-revision-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 10;
+            background-color: #8b5cf6;
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 9999px;
+            letter-spacing: 0.05em;
+            animation: pulse-purple 1.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-purple {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.75; transform: scale(1.08); }
+        }
+
         .sura-card-body {
             display: flex;
             flex-direction: column;
@@ -275,6 +315,16 @@
                     @if($sura->is_tested)
                         <div class="sura-tested-icon" title="تم اختباره">
                             <x-heroicon-s-check-circle />
+                        </div>
+                    @elseif($sura->is_need_rememorisation)
+                        <div class="sura-rememorize-badge"
+                             title="يحتاج إعادة حفظ{{ $sura->need_from_page ? ' (ص '.$sura->need_from_page.' → '.$sura->need_to_page.')' : '' }}">
+                            إعادة
+                        </div>
+                    @elseif($sura->is_need_revision)
+                        <div class="sura-revision-badge"
+                             title="يحتاج مراجعة{{ $sura->need_from_page ? ' (ص '.$sura->need_from_page.' → '.$sura->need_to_page.')' : '' }}">
+                            مراجعة
                         </div>
                     @endif
 

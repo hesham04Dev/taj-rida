@@ -17,7 +17,48 @@ class Student extends Model
     {
         return [
             'birthdate' => 'date',
+            'given_points' => 'integer',
         ];
+    }
+
+    /**
+     * The fixed card denominations available for physical card distribution.
+     *
+     * @var array<int>
+     */
+    public const CARD_DENOMINATIONS = [100, 50, 25, 15];
+
+    /**
+     * Compute the current total points from transactions.
+     */
+    public function getTotalPointsAttribute(): int
+    {
+        return (int) $this->pointTransactions()->sum('amount');
+    }
+
+    /**
+     * Compute the remaining balance (total earned - already given out).
+     */
+    public function getRemainingPointsAttribute(): int
+    {
+        return max(0, $this->total_points - $this->given_points);
+    }
+
+    /**
+     * Return the largest card denomination that fits within the remaining balance.
+     * Falls back to the smallest denomination if nothing fits.
+     */
+    public function getSuggestedCardValueAttribute(): int
+    {
+        $remaining = $this->remaining_points;
+
+        foreach (self::CARD_DENOMINATIONS as $card) {
+            if ($card <= $remaining) {
+                return $card;
+            }
+        }
+
+        return self::CARD_DENOMINATIONS[count(self::CARD_DENOMINATIONS) - 1];
     }
 
     public function teacher()

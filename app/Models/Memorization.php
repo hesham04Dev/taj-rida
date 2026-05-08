@@ -13,6 +13,9 @@ class Memorization extends Model
     {
         return [
             'is_need_rememorisation' => 'boolean',
+            'is_need_revision' => 'boolean',
+            'need_from_page' => 'integer',
+            'need_to_page' => 'integer',
             'update_date' => 'date',
             'test_counts' => 'integer',
         ];

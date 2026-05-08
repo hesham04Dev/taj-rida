@@ -1,20 +1,24 @@
 <?php
+
 namespace App\Filament\Resources\Students\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\Layout\Stack;
-use Filament\Tables\Columns\Layout\Split;
+use App\Models\Attendance;
+use App\Models\PointTransaction;
+use App\Models\Student;
+use Carbon\Carbon;
 use Filament\Actions\Action;
-use Filament\Forms\Components\ToggleButtons;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+
 class StudentsTable
 {
     public static function configure(Table $table): Table
@@ -23,21 +27,21 @@ class StudentsTable
             ->contentGrid([
                 'md' => 2,
                 'xl' => 2,
-                'sm' => 1
+                'sm' => 1,
             ])
             ->columns([
                 Stack::make([
                     TextColumn::make('name')
                         ->label('اسم الطالب')
-                        ->weight("bold")
-                        ->size("large")
+                        ->weight('bold')
+                        ->size('large')
                         ->searchable()
                         ->sortable(),
 
                     TextColumn::make('teacher.name')
                         ->label('الأستاذ')
                         ->color('gray')
-                        ->size("small")
+                        ->size('small')
                         ->icon('heroicon-m-user')
                         ->sortable()
                         ->toggleable(isToggledHiddenByDefault: auth()->check() && auth()->user()->role === 'teacher'),
@@ -45,7 +49,7 @@ class StudentsTable
                     Split::make([
                         TextColumn::make('points_multiplier')
                             ->label('مضاعف')
-                            ->formatStateUsing(fn ($state) => 'مضاعف: ' . $state)
+                            ->formatStateUsing(fn ($state) => 'مضاعف: '.$state)
                             ->badge()
                             ->color('info')
                             ->grow(false),
@@ -57,6 +61,13 @@ class StudentsTable
                             ->badge()
                             ->color('warning')
                             ->sortable(false),
+
+                        TextColumn::make('given_points')
+                            ->label('موزعة')
+                            ->formatStateUsing(fn ($state) => 'موزع: '.$state)
+                            ->badge()
+                            ->color('success')
+                            ->sortable(false),
                     ]),
                 ])->space(3),
             ])
@@ -65,15 +76,15 @@ class StudentsTable
             ])
             ->recordActions([
                 Action::make('attendance')
-                    ->label(fn ($record) => $record->attendances()->whereDate('date', \Carbon\Carbon::today())->where('is_present', true)->exists() ? 'حاضر' : 'غائب')
-                    ->color(fn ($record) => $record->attendances()->whereDate('date', \Carbon\Carbon::today())->where('is_present', true)->exists() ? 'success' : 'danger')
+                    ->label(fn ($record) => $record->attendances()->whereDate('date', Carbon::today())->where('is_present', true)->exists() ? 'حاضر' : 'غائب')
+                    ->color(fn ($record) => $record->attendances()->whereDate('date', Carbon::today())->where('is_present', true)->exists() ? 'success' : 'danger')
                     ->icon('heroicon-o-check-circle')
                     ->action(function ($record) {
-                        $attendance = \App\Models\Attendance::firstOrNew([
+                        $attendance = Attendance::firstOrNew([
                             'student_id' => $record->id,
-                            'date' => \Carbon\Carbon::today(),
+                            'date' => Carbon::today(),
                         ]);
-                        $attendance->is_present = !$attendance->exists || !$attendance->is_present;
+                        $attendance->is_present = ! $attendance->exists || ! $attendance->is_present;
                         $attendance->save();
                     }),
                 // Action::make('page_log')
@@ -104,7 +115,6 @@ class StudentsTable
                 //         ]);
                 //     }),
 
-        
                 // Action::make('grant_points')
                 //     ->label('منح')
                 //     ->icon('heroicon-o-gift')
@@ -121,104 +131,153 @@ class StudentsTable
                 //         ]);
                 //     }),
                 Action::make('grant_points')
-    ->label('منح نقاط')
-    ->icon('heroicon-o-gift')
-    ->color('success') // Use that Lime Green feel
-    ->modalHeading('إضافة أو خصم نقاط')
-    ->modalWidth('md')
-    ->form([
-        Grid::make(2)->schema([
-            // 1. Toggle for Adding/Removing
-            Toggle::make('is_deduction')
-                ->label('خصم / إضافة')
-                // ->offLabel('إضافة (+)')
-                // ->onLabel('خصم (-)')
-                ->onColor('danger')
-                ->offColor('success')
-                ->offIcon('heroicon-m-plus-circle')
-                ->onIcon('heroicon-m-minus-circle')
-                ->columnSpanFull()
-                ->live(),
+                    ->label('منح نقاط')
+                    ->icon('heroicon-o-gift')
+                    ->color('success') // Use that Lime Green feel
+                    ->modalHeading('إضافة أو خصم نقاط')
+                    ->modalWidth('md')
+                    ->form([
+                        Grid::make(2)->schema([
+                            // 1. Toggle for Adding/Removing
+                            Toggle::make('is_deduction')
+                                ->label('خصم / إضافة')
+                                // ->offLabel('إضافة (+)')
+                                // ->onLabel('خصم (-)')
+                                ->onColor('danger')
+                                ->offColor('success')
+                                ->offIcon('heroicon-m-plus-circle')
+                                ->onIcon('heroicon-m-minus-circle')
+                                ->columnSpanFull()
+                                ->live(),
 
-            // 2. Quick Points Buttons
-            ToggleButtons::make('quick_amount')
-                ->label('اختر النقاط')
-                ->options([
-                    '5' => '5',
-                    '10' => '10',
-                    '20' => '20',
-                    '50' => '50',
-                    '100' => '100',
-                    'custom' => 'قيمة أخرى',
-                ])
-                ->colors([
-                    'custom' => 'gray',
-                ])
-                ->default('10')
-                ->inline()
-                ->columnSpanFull()
-                ->live(),
+                            // 2. Quick Points Buttons
+                            ToggleButtons::make('quick_amount')
+                                ->label('اختر النقاط')
+                                ->options([
+                                    '5' => '5',
+                                    '10' => '10',
+                                    '20' => '20',
+                                    '50' => '50',
+                                    '100' => '100',
+                                    'custom' => 'قيمة أخرى',
+                                ])
+                                ->colors([
+                                    'custom' => 'gray',
+                                ])
+                                ->default('10')
+                                ->inline()
+                                ->columnSpanFull()
+                                ->live(),
 
-            // 3. Custom Amount (Visible only if 'custom' is selected)
-            TextInput::make('custom_amount')
-                ->label('النقاط المخصصة')
-                ->numeric()
-                ->hidden(fn (Get $get) => $get('quick_amount') !== 'custom')
-                ->required(fn (Get $get) => $get('quick_amount') === 'custom')
-                ->columnSpanFull(),
+                            // 3. Custom Amount (Visible only if 'custom' is selected)
+                            TextInput::make('custom_amount')
+                                ->label('النقاط المخصصة')
+                                ->numeric()
+                                ->hidden(fn (Get $get) => $get('quick_amount') !== 'custom')
+                                ->required(fn (Get $get) => $get('quick_amount') === 'custom')
+                                ->columnSpanFull(),
 
-            // 4. Quick Reason Buttons
-            ToggleButtons::make('quick_reason')
-                ->label('السبب الشائع')
-                ->options([
-                    'مكافأة' => 'مكافأة',
-                    'مشاركة' => 'مشاركة',
-                    'التزام' => 'التزام',
-                    'خصم سلوك' => 'خصم سلوك',
-                    'custom' => 'سبب آخر',
-                ])
-                ->default('مكافأة')
-                ->inline()
-                ->columnSpanFull()
-                ->live(),
+                            // 4. Quick Reason Buttons
+                            ToggleButtons::make('quick_reason')
+                                ->label('السبب الشائع')
+                                ->options([
+                                    'مكافأة' => 'مكافأة',
+                                    'مشاركة' => 'مشاركة',
+                                    'التزام' => 'التزام',
+                                    'خصم سلوك' => 'خصم سلوك',
+                                    'custom' => 'سبب آخر',
+                                ])
+                                ->default('مكافأة')
+                                ->inline()
+                                ->columnSpanFull()
+                                ->live(),
 
-            // 5. Custom Reason (Visible only if 'custom' is selected)
-            TextInput::make('custom_reason')
-                ->label('اكتب السبب')
-                ->hidden(fn (Get $get) => $get('quick_reason') !== 'custom')
-                ->required(fn (Get $get) => $get('quick_reason') === 'custom')
-                ->columnSpanFull(),
-        ]),
-    ])
-    ->action(function ($record, array $data) {
-        // Logic to determine amount
-        $finalAmount = $data['quick_amount'] === 'custom' 
-            ? (int) $data['custom_amount'] 
-            : (int) $data['quick_amount'];
+                            // 5. Custom Reason (Visible only if 'custom' is selected)
+                            TextInput::make('custom_reason')
+                                ->label('اكتب السبب')
+                                ->hidden(fn (Get $get) => $get('quick_reason') !== 'custom')
+                                ->required(fn (Get $get) => $get('quick_reason') === 'custom')
+                                ->columnSpanFull(),
+                        ]),
+                    ])
+                    ->action(function ($record, array $data) {
+                        // Logic to determine amount
+                        $finalAmount = $data['quick_amount'] === 'custom'
+                            ? (int) $data['custom_amount']
+                            : (int) $data['quick_amount'];
 
-        // If it's a deduction, make the number negative
-        if ($data['is_deduction']) {
-            $finalAmount = -abs($finalAmount);
-        }
+                        // If it's a deduction, make the number negative
+                        if ($data['is_deduction']) {
+                            $finalAmount = -abs($finalAmount);
+                        }
 
-        // Logic to determine reason
-        $finalReason = $data['quick_reason'] === 'custom' 
-            ? $data['custom_reason'] 
-            : $data['quick_reason'];
+                        // Logic to determine reason
+                        $finalReason = $data['quick_reason'] === 'custom'
+                            ? $data['custom_reason']
+                            : $data['quick_reason'];
 
-        \App\Models\PointTransaction::create([
-            'student_id' => $record->id,
-            'teacher_id' => auth()->id() ?? 1,
-            'amount' => $finalAmount,
-            'reason' => $finalReason,
-        ]);
-    })
-    ->successNotificationTitle('تمت العملية بنجاح'),
+                        PointTransaction::create([
+                            'student_id' => $record->id,
+                            'teacher_id' => auth()->id() ?? 1,
+                            'amount' => $finalAmount,
+                            'reason' => $finalReason,
+                        ]);
+                    })
+                    ->successNotificationTitle('تمت العملية بنجاح'),
+
+                Action::make('give_points')
+                    ->label('توزيع كرت')
+                    ->icon('heroicon-o-ticket')
+                    ->color('warning')
+                    ->modalHeading(fn ($record) => 'توزيع كرت - '.$record->name)
+                    ->modalWidth('sm')
+                    ->fillForm(function ($record): array {
+                        return [
+                            'card_value' => (string) $record->suggested_card_value,
+                        ];
+                    })
+                    ->form(function ($record) {
+                        $remaining = $record->remaining_points;
+                        $availableCards = collect(Student::CARD_DENOMINATIONS)
+                            ->mapWithKeys(fn ($v) => [(string) $v => $v.' نقطة'])
+                            ->all();
+
+                        return [
+                            Grid::make(1)->schema([
+                                ToggleButtons::make('card_value')
+                                    ->label('اختر قيمة الكرت')
+                                    ->helperText('الرصيد المتاح: '.$remaining.' نقطة')
+                                    ->options($availableCards)
+                                    ->inline()
+                                    ->required(),
+                            ]),
+                        ];
+                    })
+                    ->action(function ($record, array $data) {
+                        $cardValue = (int) $data['card_value'];
+                        $remaining = $record->remaining_points;
+
+                        if ($cardValue > $remaining) {
+                            Notification::make()
+                                ->title('لا يمكن توزيع '.$cardValue.' نقطة - الرصيد المتاح '.$remaining.' فقط')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
+                        $record->increment('given_points', $cardValue);
+
+                        Notification::make()
+                            ->title('تم توزيع كرت '.$cardValue.' نقطة بنجاح')
+                            ->success()
+                            ->send();
+                    }),
                 Action::make('sura_tracker')
                     ->label('متابعة السور')
                     ->icon('heroicon-o-book-open')
                     ->color('info')
-                    ->url(fn ($record) => '/app/students/' . $record->id . '/tracker'),
+                    ->url(fn ($record) => '/app/students/'.$record->id.'/tracker'),
                 EditAction::make()->iconButton(),
             ])
             ->headerActions([
@@ -230,16 +289,16 @@ class StudentsTable
                     ->modalHeading('تأكيد تسجيل الغياب')
                     ->modalDescription('هل أنت متأكد من تسجيل الغياب وتطبيق الخصم لجميع الطلاب الذين لم يتم تسجيل حضورهم اليوم؟')
                     ->action(function () {
-                        $students = \App\Models\Student::when(auth()->user()->role === 'teacher', function($q) {
+                        $students = Student::when(auth()->user()->role === 'teacher', function ($q) {
                             $q->where('teacher_id', auth()->id());
                         })->get();
 
                         foreach ($students as $student) {
-                            $existing = $student->attendances()->whereDate('date', \Carbon\Carbon::today())->first();
-                            if (!$existing) {
-                                $att = \App\Models\Attendance::create([
+                            $existing = $student->attendances()->whereDate('date', Carbon::today())->first();
+                            if (! $existing) {
+                                $att = Attendance::create([
                                     'student_id' => $student->id,
-                                    'date' => \Carbon\Carbon::today(),
+                                    'date' => Carbon::today(),
                                     'is_present' => false,
                                 ]);
                             }

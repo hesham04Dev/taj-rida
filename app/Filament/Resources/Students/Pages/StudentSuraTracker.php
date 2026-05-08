@@ -83,6 +83,10 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
             $sura->memorization_repetition = $mem?->memorization_repetition ?? 0;
             $sura->revision_repetition = $mem?->revision_repetition ?? 0;
             $sura->is_tested = $mem && ($mem->test_counts > 0 || ! empty($mem->test_grade));
+            $sura->is_need_rememorisation = $mem?->is_need_rememorisation ?? false;
+            $sura->is_need_revision = $mem?->is_need_revision ?? false;
+            $sura->need_from_page = $mem?->need_from_page;
+            $sura->need_to_page = $mem?->need_to_page;
 
             return $sura;
         });
@@ -97,10 +101,16 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
             ->schema([
                 Toggle::make('is_need_rememorisation')
                     ->label('يحتاج لإعادة حفظ')
-                    ->default(false),
+                    ->default(false)
+                    ->live(),
+                Toggle::make('is_need_revision')
+                    ->label('يحتاج لمراجعة')
+                    ->default(false)
+                    ->live(),
                 Toggle::make('is_no_points')
                     ->label('بدون نقاط')
-                    ->default(false),
+                    ->default(false)
+                    ->hidden(fn ($get) => $get('is_need_rememorisation') || $get('is_need_revision')),
                 ToggleButtons::make('type')
                     ->label('النوع')
                     ->options([
@@ -109,7 +119,9 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                         'test' => 'اختبار',
                     ])
                     ->inline()
-                    ->required()->live(),
+                    ->required(fn ($get) => ! $get('is_need_rememorisation') && ! $get('is_need_revision'))
+                    ->hidden(fn ($get) => $get('is_need_rememorisation') || $get('is_need_revision'))
+                    ->live(),
                 Grid::make(2)
                     ->schema([
                         TextInput::make('from_page')
@@ -132,11 +144,13 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                         'ضعيف' => 'ضعيف',
                     ])
                     ->inline()
-                    ->required(),
-                Grid::make(3)->schema([
-                    TextInput::make('last_test_name')->hidden(fn ($get) => $get('type') != 'test')->label('اسم الاختبار')->nullable(),
-                ]),
-
+                    ->required(fn ($get) => ! $get('is_need_rememorisation') && ! $get('is_need_revision'))
+                    ->hidden(fn ($get) => $get('is_need_rememorisation') || $get('is_need_revision')),
+                Grid::make(3)
+                    ->hidden(fn ($get) => $get('is_need_rememorisation') || $get('is_need_revision'))
+                    ->schema([
+                        TextInput::make('last_test_name')->hidden(fn ($get) => $get('type') != 'test')->label('اسم الاختبار')->nullable(),
+                    ]),
             ])
             ->fillForm(function (array $arguments): array {
                 $sura = Sura::find($arguments['sura'] ?? 1);
@@ -145,6 +159,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                     'type' => 'memorization',
                     'grade' => 'ممتاز',
                     'is_need_rememorisation' => false,
+                    'is_need_revision' => false,
                     'from_page' => $sura?->from_page,
                     'to_page' => $sura?->to_page,
                 ];
@@ -165,12 +180,48 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                     'sura_id' => $suraId,
                 ]);
 
+                $isNeedRememorisation = $data['is_need_rememorisation'] ?? false;
+                $isNeedRevision = $data['is_need_revision'] ?? false;
+
+                $memorization->is_need_rememorisation = $isNeedRememorisation;
+                $memorization->is_need_revision = $isNeedRevision;
+
+                // When flagging for needs mode: save page range, skip grading/points.
+                if ($isNeedRememorisation || $isNeedRevision) {
+                    // dd([$data['from_page'], $sura['from_page'], $data['to_page'], $sura['to_page']]);
+                    if (
+                        $data['from_page'] != $sura['from_page'] || $data['to_page'] != $sura['to_page']
+                    ) {
+
+                        $memorization->need_from_page = $data['from_page'];
+                        $memorization->need_to_page = $data['to_page'];
+                    }
+
+                    $memorization->save();
+
+                    $label = $isNeedRememorisation ? 'إعادة الحفظ' : 'المراجعة';
+
+                    Notification::make()
+                        ->title("تم تحديد السورة لـ{$label} (ص {$data['from_page']} → {$data['to_page']})")
+                        ->warning()
+                        ->send();
+
+                    return;
+                }
+
+                // Normal grading flow — clear needs flags and page range.
+                $memorization->need_from_page = null;
+                $memorization->need_to_page = null;
+
+                // Auto-clear the matching needs flag when a successful log is saved.
                 if ($data['type'] === 'memorization') {
+                    $memorization->is_need_rememorisation = false;
                     $memorization->memorization_degree = $data['grade'];
                     if ($data['to_page'] >= $sura->pages_count + $sura->from_page) {
                         $memorization->memorization_repetition = ($memorization->memorization_repetition ?? 0) + 1;
                     }
                 } elseif ($data['type'] === 'revision') {
+                    $memorization->is_need_revision = false;
                     $memorization->revision_degree = $data['grade'];
                     if ($data['to_page'] >= $sura->pages_count + $sura->from_page) {
                         $memorization->revision_repetition = ($memorization->revision_repetition ?? 0) + 1;
@@ -189,7 +240,6 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                     $memorization->update_date = $data['update_date'];
                 }
 
-                $memorization->is_need_rememorisation = $data['is_need_rememorisation'] ?? false;
                 $memorization->memorized_pages = $data['to_page'] - $sura->from_page;
 
                 $memorization->save();
@@ -207,14 +257,19 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                 ->url(route('filament.admin.resources.students.edit', $this->record->id)),
             Action::make('bulkAddLog')
                 ->label('تسجيل إنجاز متعدد (للمحدد)')
-
                 ->form([
                     Toggle::make('is_need_rememorisation')
                         ->label('يحتاج لإعادة حفظ')
-                        ->default(false),
+                        ->default(false)
+                        ->live(),
+                    Toggle::make('is_need_revision')
+                        ->label('يحتاج لمراجعة')
+                        ->default(false)
+                        ->live(),
                     Toggle::make('is_no_points')
                         ->label('بدون نقاط')
-                        ->default(false),
+                        ->default(false)
+                        ->hidden(fn ($get) => $get('is_need_rememorisation') || $get('is_need_revision')),
                     TextEntry::make('selected_suras_names')
                         ->label('السور المحددة'),
                     TextEntry::make('selected_suras_names_content')
@@ -231,7 +286,8 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                             'test' => 'اختبار',
                         ])
                         ->inline()
-                        ->required()
+                        ->required(fn ($get) => ! $get('is_need_rememorisation') && ! $get('is_need_revision'))
+                        ->hidden(fn ($get) => $get('is_need_rememorisation') || $get('is_need_revision'))
                         ->live(),
                     ToggleButtons::make('grade')
                         ->label('التقييم')
@@ -243,11 +299,13 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                             'ضعيف' => 'ضعيف',
                         ])
                         ->inline()
-                        ->required(),
-                    Grid::make(3)->schema([
-                        TextInput::make('last_test_name')->hidden(fn ($get) => $get('type') != 'test')->label('اسم الاختبار')->nullable(),
-                    ]),
-
+                        ->required(fn ($get) => ! $get('is_need_rememorisation') && ! $get('is_need_revision'))
+                        ->hidden(fn ($get) => $get('is_need_rememorisation') || $get('is_need_revision')),
+                    Grid::make(3)
+                        ->hidden(fn ($get) => $get('is_need_rememorisation') || $get('is_need_revision'))
+                        ->schema([
+                            TextInput::make('last_test_name')->hidden(fn ($get) => $get('type') != 'test')->label('اسم الاختبار')->nullable(),
+                        ]),
                 ])
                 ->action(function (array $data) {
                     if (empty($this->selectedSuras)) {
@@ -259,45 +317,74 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                         return;
                     }
 
+                    $isNeedRememorisation = $data['is_need_rememorisation'] ?? false;
+                    $isNeedRevision = $data['is_need_revision'] ?? false;
+                    $isFlagOnly = $isNeedRememorisation || $isNeedRevision;
+
                     foreach ($this->selectedSuras as $suraId) {
                         $sura = Sura::find($suraId);
-                        if ($sura) {
-                            $memorization = Memorization::firstOrNew([
-                                'student_id' => $this->record->id,
-                                'sura_id' => $suraId,
-                            ]);
-                            $data['from_page'] = $memorization->sura->from_page;
-                            $data['to_page'] = $data['from_page'] + $memorization->sura->pages_count;
-
-                            $memorization->memorized_pages = $sura->pages_count; // always full
-
-                            if ($data['type'] === 'memorization') {
-                                $memorization->memorization_degree = $data['grade'];
-                                $memorization->memorization_repetition = ($memorization->memorization_repetition ?? 0) + 1;
-                            } elseif ($data['type'] === 'revision') {
-                                $memorization->revision_degree = $data['grade'];
-                                $memorization->revision_repetition = ($memorization->revision_repetition ?? 0) + 1;
-                            } elseif ($data['type'] === 'test') {
-                                $memorization->test_grade = $data['grade'];
-                                $memorization->test_counts = ($memorization->test_counts ?? 0) + 1;
-                            }
-
-                            if (! empty($data['last_test_name'])) {
-                                $memorization->last_test_name = $data['last_test_name'];
-                            }
-                            $memorization->is_need_rememorisation = $data['is_need_rememorisation'] ?? false;
-
-                            $memorization->save();
-                            $this->setPointTransation($memorization, $data);
-                            $this->setPageLogs($data, $memorization);
+                        if (! $sura) {
+                            continue;
                         }
+
+                        $memorization = Memorization::firstOrNew([
+                            'student_id' => $this->record->id,
+                            'sura_id' => $suraId,
+                        ]);
+
+                        $memorization->is_need_rememorisation = $isNeedRememorisation;
+                        $memorization->is_need_revision = $isNeedRevision;
+
+                        // In bulk flag mode: store full sura page range, skip grading.
+                        if ($isFlagOnly) {
+                            // $memorization->need_from_page = $sura->from_page;
+                            // $memorization->need_to_page = $sura->from_page + $sura->pages_count;
+                            $memorization->save();
+
+                            continue;
+                        }
+
+                        // Normal bulk grading flow — clear needs state.
+                        $memorization->need_from_page = null;
+                        $memorization->need_to_page = null;
+
+                        $fromPage = $sura->from_page;
+                        $toPage = $fromPage + $sura->pages_count;
+
+                        $memorization->memorized_pages = $sura->pages_count;
+
+                        if ($data['type'] === 'memorization') {
+                            $memorization->is_need_rememorisation = false;
+                            $memorization->memorization_degree = $data['grade'];
+                            $memorization->memorization_repetition = ($memorization->memorization_repetition ?? 0) + 1;
+                        } elseif ($data['type'] === 'revision') {
+                            $memorization->is_need_revision = false;
+                            $memorization->revision_degree = $data['grade'];
+                            $memorization->revision_repetition = ($memorization->revision_repetition ?? 0) + 1;
+                        } elseif ($data['type'] === 'test') {
+                            $memorization->test_grade = $data['grade'];
+                            $memorization->test_counts = ($memorization->test_counts ?? 0) + 1;
+                        }
+
+                        if (! empty($data['last_test_name'])) {
+                            $memorization->last_test_name = $data['last_test_name'];
+                        }
+
+                        $memorization->save();
+
+                        $logData = array_merge($data, ['from_page' => $fromPage, 'to_page' => $toPage]);
+                        $this->setPointTransation($memorization, $logData);
+                        $this->setPageLogs($logData, $memorization);
                     }
 
                     $this->selectedSuras = [];
 
+                    $label = $isNeedRememorisation ? 'إعادة الحفظ' : ($isNeedRevision ? 'المراجعة' : null);
+
                     Notification::make()
-                        ->title('تم تسجيل الإنجاز بنجاح')
-                        ->success()
+                        ->title($label ? "تم تحديد السور لـ{$label}" : 'تم تسجيل الإنجاز بنجاح')
+                        ->when($isFlagOnly, fn ($n) => $n->warning())
+                        ->when(! $isFlagOnly, fn ($n) => $n->success())
                         ->send();
                 }),
         ];
@@ -305,7 +392,6 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
 
     protected function setPointTransation(Memorization $memorization, $data)
     {
-
         $isNoPoints = $data['is_no_points'] ?? false;
 
         if ($data['type'] == 'memorization' && (($memorization['memorization_repetition'] ?? 0) > 1)) {
@@ -360,6 +446,5 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
         }
 
         return false;
-
     }
 }
