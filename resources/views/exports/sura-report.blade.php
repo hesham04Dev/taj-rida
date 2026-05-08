@@ -90,9 +90,12 @@
                 <tr>
                     <th colspan="2" class="p-0 border-none">
                         <div class="flex justify-between items-end border-b-2 border-vintage-gold pb-6 mb-10">
-                            <div>
-                                <h1 class="text-4xl font-black text-vintage-ink tracking-tight"
-                                    style="padding-top:75px">تقرير متابعة الحفظ</h1>
+                            <div class="flex items-end gap-3" style="padding-top:75px">
+                                <img src="{{ asset("assets/reda.png") }}" width="40px" class="">
+                                <h1 class="text-4xl font-normal text-vintage-ink tracking-tight">
+                                    قائمة مهام الدرس
+                                </h1>
+
 
                             </div>
                             <div class="">
@@ -106,31 +109,38 @@
 
                 <tr class="text-vintage-sepia border-b border-vintage-gold/30">
                     <th class="py-4 px-2 text-lg font-black">اسم الطالب</th>
-                    <th class="py-4 px-2 text-lg font-black text-center">المقرر </th>
+                    <th class="py-4 px-2 text-lg font-black ">المقرر </th>
                 </tr>
             </thead>
 
             <tbody class="bg-transparent">
+                @php
+                    $i = 0;
+                @endphp
                 @foreach($groups as $group)
+                    @php
+                        $i++;
+                    @endphp
                     <tr class="row-divider">
-                        <td class="py-8 px-2 align-top w-1/3">
-                            <div class="font-black text-2xl text-vintage-ink">{{ $group['student']->name }}</div>
+                        <td class="py-4 px-2 align-top w-1/4">
+                            <div class="text-xl text-vintage-ink font-bold">{{ $i }}. {{ $group['student']->name }}</div>
 
                         </td>
 
-                        <td class="py-8 px-2 space-y-6">
+                        <td class="py-4 px-2 space-y-6">
 
                             {{-- Memorization Row --}}
                             @if(count($group['memorization']) > 0)
-                                <div>
+                                <div class="flex items-start gap-2">
                                     <div class="flex items-center gap-2 mb-3">
-                                        <div class="h-2 w-2 rounded-full bg-orange-700"></div>
-                                        <span class="text-xs font-black text-orange-800 uppercase tracking-widest">حفظ</span>
+
+                                        <span class="text-s font-black text-orange-800 uppercase tracking-widest"
+                                            style="width: 60px;">حفظ</span>
                                     </div>
                                     <div class="flex flex-wrap gap-3">
                                         @foreach($group['memorization'] as $sura)
-                                            <div class="bg-orange-900/5 border border-orange-200/50 px-4 py-2 rounded-md">
-                                                <span class="text-md font-bold text-vintage-ink">{{ $sura['name'] }}</span>
+                                            <div class="bg-orange-900/5 border border-orange-200/50 px-4 py-1 rounded-md">
+                                                <span class="text-lg font-bold text-vintage-ink">{{ $sura['name'] }}</span>
                                                 @if(isset($sura['need_from_page']))
                                                     <div class="text-[11px] text-orange-800 font-bold">
                                                         من ص {{ $sura['need_from_page'] }} إلى {{ $sura['need_to_page'] }}
@@ -144,16 +154,16 @@
 
                             {{-- Revision Row --}}
                             @if(count($group['revision']) > 0)
-                                <div>
+                                <div class="flex items-start gap-2">
                                     <div class="flex items-center gap-2 mb-3">
-                                        <div class="h-2 w-2 rounded-full bg-vintage-gold"></div>
-                                        <span
-                                            class="text-xs font-black text-vintage-sepia uppercase tracking-widest">مراجعة</span>
+
+                                        <span class="text-s font-black text-vintage-sepia uppercase tracking-widest"
+                                            style="width: 60px;">مراجعة</span>
                                     </div>
                                     <div class="flex flex-wrap gap-3">
                                         @foreach($group['revision'] as $sura)
-                                            <div class="bg-vintage-gold/5 border border-vintage-gold/20 px-4 py-2 rounded-md">
-                                                <span class="text-md font-bold text-vintage-ink">{{ $sura['name'] }}</span>
+                                            <div class="bg-vintage-gold/5 border border-vintage-gold/20 px-4 py-1 rounded-md">
+                                                <span class="text-lg font-bold text-vintage-ink">{{ $sura['name'] }}</span>
                                                 @if(isset($sura['need_from_page']))
                                                     <div class="text-[11px] text-vintage-gold font-bold">
                                                         من ص {{ $sura['need_from_page'] }} إلى {{ $sura['need_to_page'] }}
