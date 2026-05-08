@@ -127,7 +127,6 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                         TextInput::make('from_page')
                             ->label('من صفحة')
                             ->numeric()
-                            ->default(1)
                             ->required(),
                         TextInput::make('to_page')
                             ->label('إلى صفحة')
@@ -155,12 +154,17 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
             ->fillForm(function (array $arguments): array {
                 $sura = Sura::find($arguments['sura'] ?? 1);
 
+                $from_page = $sura?->from_page + $sura?->memorizations?->last()?->memorized_pages ?? 0;
+                if ($from_page == $sura?->to_page) {
+                    $from_page = $sura?->from_page;
+                }
+
                 return [
                     'type' => 'memorization',
                     'grade' => 'ممتاز',
                     'is_need_rememorisation' => false,
                     'is_need_revision' => false,
-                    'from_page' => $sura?->from_page,
+                    'from_page' => $from_page,
                     'to_page' => $sura?->to_page,
                 ];
             })

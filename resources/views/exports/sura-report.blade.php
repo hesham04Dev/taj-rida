@@ -92,7 +92,7 @@
                         <div class="flex justify-between items-end border-b-2 border-vintage-gold pb-6 mb-10">
                             <div class="flex items-end gap-3" style="padding-top:75px">
                                 <img src="{{ asset("assets/reda.png") }}" width="40px" class="">
-                                <h1 class="text-4xl font-normal text-vintage-ink tracking-tight">
+                                <h1 class="text-2xl font-normal text-vintage-ink tracking-tight">
                                     قائمة مهام الدرس
                                 </h1>
 

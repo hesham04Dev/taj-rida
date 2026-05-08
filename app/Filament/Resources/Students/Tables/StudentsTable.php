@@ -60,7 +60,13 @@ class StudentsTable
                             ->icon('heroicon-m-star')
                             ->badge()
                             ->color('warning')
-                            ->sortable(false),
+                            ->sortable(query: function ($query, string $direction) {
+                                $query->addSelect([
+                                    'total_points_sum' => PointTransaction::selectRaw('sum(amount)')
+                                        ->whereColumn('student_id', 'students.id'), // Ensure 'students.id' matches your table name
+                                ])
+                                    ->orderBy('total_points_sum', $direction);
+                            }),
 
                         TextColumn::make('given_points')
                             ->label('موزعة')
@@ -87,49 +93,6 @@ class StudentsTable
                         $attendance->is_present = ! $attendance->exists || ! $attendance->is_present;
                         $attendance->save();
                     }),
-                // Action::make('page_log')
-                //     ->label('سجل الصفحات')
-                //     ->icon('heroicon-o-document-text')
-                //     ->color('warning')
-                //     ->form([
-                //         \Filament\Forms\Components\ToggleButtons::make('type')
-                //             ->label('النوع')
-                //             ->options([
-                //                 'recitation' => 'تسميع جديد (حفظ)',
-                //                 'revision' => 'مراجعة',
-                //             ])
-                //             ->inline()
-                //             ->required(),
-                //         \Filament\Forms\Components\TextInput::make('count')
-                //             ->label('عدد الصفحات')
-                //             ->numeric()
-                //             ->default(1)
-                //             ->required(),
-                //     ])
-                //     ->action(function ($record, array $data) {
-                //         \App\Models\PageLog::create([
-                //             'student_id' => $record->id,
-                //             'type' => $data['type'],
-                //             'count' => $data['count'],
-                //             'date' => \Carbon\Carbon::now(),
-                //         ]);
-                //     }),
-
-                // Action::make('grant_points')
-                //     ->label('منح')
-                //     ->icon('heroicon-o-gift')
-                //     ->form([
-                //         \Filament\Forms\Components\TextInput::make('amount')->label('النقاط')->numeric()->required(),
-                //         \Filament\Forms\Components\TextInput::make('reason')->label('السبب')->default('مكافأة'),
-                //     ])
-                //     ->action(function ($record, array $data) {
-                //         \App\Models\PointTransaction::create([
-                //             'student_id' => $record->id,
-                //             'teacher_id' => auth()->user() ? auth()->id() : 1,
-                //             'amount' => $data['amount'],
-                //             'reason' => $data['reason'],
-                //         ]);
-                //     }),
                 Action::make('grant_points')
                     ->label('منح نقاط')
                     ->icon('heroicon-o-gift')
