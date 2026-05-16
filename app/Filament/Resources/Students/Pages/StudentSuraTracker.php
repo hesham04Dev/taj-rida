@@ -154,7 +154,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
             ->fillForm(function (array $arguments): array {
                 $sura = Sura::find($arguments['sura'] ?? 1);
 
-                $from_page = $sura?->from_page + $sura?->memorizations?->last()?->memorized_pages ?? 0;
+                $from_page = round($sura?->from_page + $sura?->memorizations?->last()?->memorized_pages ?? 0, 1);
                 if ($from_page == $sura?->to_page) {
                     $from_page = $sura?->from_page;
                 }
