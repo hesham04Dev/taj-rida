@@ -145,7 +145,9 @@ class NeedsMemorizationPage extends Page
             $response = Http::withBasicAuth($credentials['id'], $credentials['key'])
                 ->post('https://hcti.io/v1/image', [
                     'html' => $html,
-                    'width' => 850,
+                    'viewport_width' => 1000,
+                    'viewport_height' => 1500,
+                    'full_screen' => true,
                 ]);
 
             // If successful, grab the URL and break out of the loop

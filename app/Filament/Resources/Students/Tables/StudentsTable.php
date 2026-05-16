@@ -31,12 +31,35 @@ class StudentsTable
             ])
             ->columns([
                 Stack::make([
-                    TextColumn::make('name')
-                        ->label('اسم الطالب')
-                        ->weight('bold')
-                        ->size('large')
-                        ->searchable()
-                        ->sortable(),
+                    Split::make([
+                        TextColumn::make('index')
+                            ->label('#')
+                            ->getStateUsing(static function ($record, $livewire) {
+                                // جلب السجلات الحالية للصفحة
+                                $records = $livewire->getTableRecords();
+
+                                // تحويل السجلات لمصفوفة سواء كانت مقسمة لصفحات (Paginated) أو مصفوفة عادية
+                                $items = method_exists($records, 'items') ? $records->items() : $records->all();
+
+                                // البحث عن مكان السجل الحالي بمقارنة الـ ID لمنع مشاكل التطابق
+                                $index = collect($items)->search(fn ($item) => $item->getKey() === $record->getKey());
+
+                                if ($index === false) {
+                                    return null;
+                                }
+
+                                // إذا كان هناك تقسيم صفحات (Pagination)، يتم حساب الترتيب التراكمي
+                                return method_exists($records, 'firstItem')
+                                    ? $records->firstItem() + $index
+                                    : $index + 1;
+                            })->grow(false),
+                        TextColumn::make('name')
+                            ->label('اسم الطالب')
+                            ->weight('bold')
+                            ->size('large')
+                            ->searchable()
+                            ->sortable(),
+                    ]),
 
                     TextColumn::make('teacher.name')
                         ->label('الأستاذ')
