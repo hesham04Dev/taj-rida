@@ -34,5 +34,15 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'hcti' => [
+        'account_1' => [
+            'id' => env('HCTI_USER_ID_1'),
+            'key' => env('HCTI_API_KEY_1'),
+        ],
+        'account_2' => [
+            'id' => env('HCTI_USER_ID_2'),
+            'key' => env('HCTI_API_KEY_2'),
+        ],
+    ],
 
 ];

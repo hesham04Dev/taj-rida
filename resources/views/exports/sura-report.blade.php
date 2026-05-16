@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تقرير المتابعة - {{ $date }}</title>
 
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700;900&display=swap" rel="stylesheet">
 
@@ -55,7 +56,7 @@
             font-family: 'Cairo', sans-serif;
             background-color: #f4f1ea;
             /* Fallback color */
-            background-image: url('{{ asset("assets/paper.jpeg") }}');
+            /* background-image: url('{{ asset("assets/paper.jpeg") }}'); */
             background-size: cover;
             /* background-attachment: fixed; */
             background-repeat: repeat;
@@ -64,6 +65,7 @@
             /* min-height: 100vh; */
             padding: 0 80px;
             /* Adjusted to stay inside the paper's frame */
+            min-height: 1414px;
         }
 
         /* Removing standard table borders to let the paper shine */
@@ -191,13 +193,14 @@
         </table>
     </div>
 
+    {{--
     <script>
         window.onload = function () {
             setTimeout(() => {
                 window.print();
             }, 800);
         };
-    </script>
+    </script> --}}
 </body>
 
 </html>

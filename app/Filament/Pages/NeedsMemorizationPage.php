@@ -8,6 +8,8 @@ use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\View;
 
 class NeedsMemorizationPage extends Page
 {
@@ -60,6 +62,11 @@ class NeedsMemorizationPage extends Page
                 ->color('success')
                 ->icon('heroicon-o-printer')
                 ->url(fn () => route('sura.print.report'), shouldOpenInNewTab: true),
+            Action::make('downloadPng')
+                ->label('تحميل كصورة')
+                ->color('primary')
+                // ->icon('heroicon-o-download')
+                ->action('downloadPng'),
         ];
     }
 
@@ -110,5 +117,65 @@ class NeedsMemorizationPage extends Page
     public function getGroupedNeedsProperty()
     {
         return $this->groupedNeeds();
+    }
+
+    public function downloadPng()
+    {
+        // 1. Render your Blade HTML view to a string
+        $html = View::make('exports.sura-report', [
+            'groups' => NeedsMemorizationPage::groupedNeeds(),
+            'date' => date('Y-m-d'),
+        ])->render();
+
+        // 2. Define your available accounts pool
+        $accounts = [
+            config('services.hcti.account_1'),
+            config('services.hcti.account_2'),
+        ];
+
+        $imageUrl = null;
+
+        // 3. Loop through your accounts
+        foreach ($accounts as $index => $credentials) {
+            // Skip if credentials are missing
+            if (empty($credentials['id']) || empty($credentials['key'])) {
+                continue;
+            }
+
+            $response = Http::withBasicAuth($credentials['id'], $credentials['key'])
+                ->post('https://hcti.io/v1/image', [
+                    'html' => $html,
+                    'width' => 850,
+                ]);
+
+            // If successful, grab the URL and break out of the loop
+            if ($response->successful()) {
+                $imageUrl = $response->json('url');
+                break;
+            }
+
+            // Check if the failure is due to running out of credits (422 Unprocessable or 429 Too Many Requests)
+            if ($response->status() == 422 || $response->status() == 429) {
+                // Log::warning("HCTI Account " . ($index + 1) . " has reached its free limit. Trying fallback account...");
+                continue; // Go to the next account in the loop
+            }
+
+            // If it's another error entirely (like invalid HTML), stop and show the error
+            abort(500, 'HCTI API Error: '.$response->body());
+        }
+
+        // 4. If both accounts fail, return an error message
+        if (! $imageUrl) {
+            abort(429, 'All available free HCTI API accounts have reached their limits for this month.');
+        }
+
+        // 5. Download the image binary and stream it back to your user
+        $imageData = file_get_contents($imageUrl);
+
+        return response()->streamDownload(function () use ($imageData) {
+            echo $imageData;
+        }, 'student_report.png', [
+            'Content-Type' => 'image/png',
+        ]);
     }
 }
