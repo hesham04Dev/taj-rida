@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Guardian;
 use App\Models\Student;
 use App\Models\User;
 
@@ -48,6 +49,11 @@ return [
             'driver' => 'session',
             'provider' => 'students',
         ],
+
+        'guardian' => [
+            'driver' => 'session',
+            'provider' => 'guardians',
+        ],
     ],
 
     /*
@@ -76,6 +82,11 @@ return [
         'students' => [
             'driver' => 'eloquent',
             'model' => Student::class,
+        ],
+
+        'guardians' => [
+            'driver' => 'eloquent',
+            'model' => Guardian::class,
         ],
     ],
 

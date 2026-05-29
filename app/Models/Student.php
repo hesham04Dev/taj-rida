@@ -94,6 +94,11 @@ class Student extends Model implements AuthenticatableContract
         return $this->hasMany(StudentNote::class);
     }
 
+    public function guardians(): HasMany
+    {
+        return $this->hasMany(StudentGuardian::class);
+    }
+
     protected static function booted()
     {
         static::addGlobalScope('teacher', function (Builder $builder) {

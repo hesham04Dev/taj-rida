@@ -1,7 +1,7 @@
 <div>
     {{-- Welcome banner --}}
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-white">
+        <h1 class="text-2xl font-bold dark:text-white">
             أهلاً، <span class="text-emerald-400">{{ $student->name }}</span> 👋
         </h1>
         <p class="text-zinc-400 text-sm mt-1">{{ now()->translatedFormat('l، j F Y') }}</p>

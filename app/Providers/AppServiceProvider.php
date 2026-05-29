@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Attendance;
+use App\Models\PageLog;
+use App\Observers\AttendanceObserver;
+use App\Observers\PageLogObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -23,8 +27,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // \App\Models\PageLog::observe(\App\Observers\PageLogObserver::class);
-        \App\Models\Attendance::observe(\App\Observers\AttendanceObserver::class);
+        PageLog::observe(PageLogObserver::class);
+        Attendance::observe(AttendanceObserver::class);
         $this->configureDefaults();
     }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تاج الرضا — بوابة الطالب</title>
+    <title>تاج الرضا — بوابة أولياء الأمور</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -24,18 +24,15 @@
     <nav class="border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
-                    {{-- <flux:icon.academic-cap class="size-5 text-white" /> --}}
-                    <img class='p-1' src="{{asset('assets/logo.png')}}">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg">
+                    {{-- <flux:icon.user-group class="size-5 text-white" /> --}}
+                    <img class="p-1" src="{{asset('assets/logo.png')}}">
                 </div>
-                <span class="font-bold text-lg text-zinc-900 dark:text-white">تاج الرضا</span>
+                <span class="font-bold text-lg text-zinc-900 dark:text-white">تاج الرضا — بوابة أولياء الأمور</span>
             </div>
 
             <div class="flex items-center gap-4">
-                <span class="text-sm text-zinc-500 dark:text-zinc-400 hidden sm:block">
-                    {{ Auth::guard('student')->user()?->name }}
-                </span>
-
+                
                 {{-- Premium Theme Switcher Button --}}
                 <flux:button
                     x-data="{
@@ -59,7 +56,7 @@
                     <flux:icon.sun x-show="theme === 'dark'" class="size-5" />
                 </flux:button>
 
-                <form method="POST" action="{{ route('student.logout') }}">
+                <form method="POST" action="{{ route('parent.logout') }}">
                     @csrf
                     <flux:button type="submit" variant="ghost" size="sm" icon="arrow-right-start-on-rectangle" class="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
                         خروج
