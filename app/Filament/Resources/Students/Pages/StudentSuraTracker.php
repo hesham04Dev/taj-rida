@@ -398,12 +398,42 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
     {
         $isNoPoints = $data['is_no_points'] ?? false;
 
-        if ($data['type'] == 'memorization' && (($memorization['memorization_repetition'] ?? 0) > 1)) {
-            $isNoPoints = true;
-        }
-        $settingKey = $data['type'].'_points_per_page';
+        $type = $data['type'] === 'memorization' ? 'recitation' : $data['type'];
+        $settingKey = $type.'_points_per_page';
         $setting = Setting::where('key', $settingKey)->first();
         $pointsPerPage = $setting ? (int) $setting->value : 0;
+
+        $grade = $data['grade'] ?? 'ممتاز';
+        $gradeSettingKey = match ($grade) {
+            'ممتاز' => 'grade_excellent_percent',
+            'جيد جدا' => 'grade_very_good_percent',
+            'جيد' => 'grade_good_percent',
+            'مقبول' => 'grade_acceptable_percent',
+            'ضعيف' => 'grade_weak_percent',
+            default => 'grade_excellent_percent',
+        };
+        $gradePercentSetting = Setting::where('key', $gradeSettingKey)->first();
+        $gradePercent = $gradePercentSetting ? (int) $gradePercentSetting->value : match ($grade) {
+            'ممتاز' => 100,
+            'جيد جدا' => 75,
+            'جيد' => 50,
+            'مقبول' => 25,
+            'ضعيف' => 0,
+            default => 100,
+        };
+
+        // Determine if it is a repetition
+        $isRepetition = false;
+        $repetitionPercent = 100;
+        if ($data['type'] === 'memorization' && (($memorization['memorization_repetition'] ?? 0) > 1)) {
+            $isRepetition = true;
+            $rePercentSetting = Setting::where('key', 're_recitation_percent')->first();
+            $repetitionPercent = $rePercentSetting ? (int) $rePercentSetting->value : 50;
+        } elseif ($data['type'] === 'revision' && (($memorization['revision_repetition'] ?? 0) > 1)) {
+            $isRepetition = true;
+            $rePercentSetting = Setting::where('key', 're_revision_percent')->first();
+            $repetitionPercent = $rePercentSetting ? (int) $rePercentSetting->value : 50;
+        }
 
         $multiplier = $memorization->student->points_multiplier ?? 1.0;
         $totalPoints = 0;
@@ -418,8 +448,16 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
         if ($data['type'] == 'test') {
             $reason .= ' ('.$memorization->last_test_name.') ';
         }
+
+        if ($isRepetition) {
+            $reason .= ' (إعادة)';
+        }
+
         if (! $isNoPoints) {
-            $totalPoints = (int) (($data['to_page'] - $data['from_page']) * $pointsPerPage * $multiplier);
+            $pages = (float) ($data['to_page'] - $data['from_page']);
+            $basePoints = $pages * $pointsPerPage * $multiplier;
+            $gradeScaled = $basePoints * ($gradePercent / 100.0);
+            $totalPoints = (int) round($gradeScaled * ($repetitionPercent / 100.0));
         } else {
             $reason .= ' (بدون نقاط)';
         }
@@ -437,6 +475,8 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
         PageLog::create([
             'student_id' => $memorization->student_id,
             'type' => $data['type'] == 'memorization' ? 'recitation' : $data['type'],
+            'from_page' => $data['from_page'],
+            'to_page' => $data['to_page'],
             'count' => $data['to_page'] - $data['from_page'],
             'date' => Date::now()->format('Y-m-d'),
         ]);

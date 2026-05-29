@@ -4,10 +4,12 @@ namespace App\Filament\Resources\Students\Tables;
 
 use App\Models\Attendance;
 use App\Models\PointTransaction;
+use App\Models\Setting;
 use App\Models\Student;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
@@ -122,82 +124,88 @@ class StudentsTable
                     ->color('success') // Use that Lime Green feel
                     ->modalHeading('إضافة أو خصم نقاط')
                     ->modalWidth('md')
-                    ->form([
-                        Grid::make(2)->schema([
-                            // 1. Toggle for Adding/Removing
-                            Toggle::make('is_deduction')
-                                ->label('خصم / إضافة')
-                                // ->offLabel('إضافة (+)')
-                                // ->onLabel('خصم (-)')
-                                ->onColor('danger')
-                                ->offColor('success')
-                                ->offIcon('heroicon-m-plus-circle')
-                                ->onIcon('heroicon-m-minus-circle')
-                                ->columnSpanFull()
-                                ->live(),
+                    ->form(function () {
+                        $reasonsSetting = Setting::where('key', 'point_reasons')->first();
+                        $predefinedReasons = $reasonsSetting ? json_decode($reasonsSetting->value, true) : [
+                            ['reason' => 'مكافأة', 'amount' => 10, 'type' => 'addition'],
+                            ['reason' => 'مشاركة', 'amount' => 15, 'type' => 'addition'],
+                            ['reason' => 'التزام', 'amount' => 20, 'type' => 'addition'],
+                            ['reason' => 'خصم سلوك', 'amount' => 10, 'type' => 'deduction'],
+                           
+                        ];
 
-                            // 2. Quick Points Buttons
-                            ToggleButtons::make('quick_amount')
-                                ->label('اختر النقاط')
-                                ->options([
-                                    '5' => '5',
-                                    '10' => '10',
-                                    '20' => '20',
-                                    '50' => '50',
-                                    '100' => '100',
-                                    'custom' => 'قيمة أخرى',
-                                ])
-                                ->colors([
-                                    'custom' => 'gray',
-                                ])
-                                ->default('10')
-                                ->inline()
-                                ->columnSpanFull()
-                                ->live(),
+                        $reasonOptions = [];
+                        foreach ($predefinedReasons as $item) {
+                            $symbol = $item['type'] === 'deduction' ? '-' : '+';
+                            $reasonOptions[$item['reason']] = $item['reason'].' ('.$symbol.$item['amount'].')';
+                        }
+                        $reasonOptions['custom'] = 'سبب آخر';
 
-                            // 3. Custom Amount (Visible only if 'custom' is selected)
-                            TextInput::make('custom_amount')
-                                ->label('النقاط المخصصة')
-                                ->numeric()
-                                ->hidden(fn (Get $get) => $get('quick_amount') !== 'custom')
-                                ->required(fn (Get $get) => $get('quick_amount') === 'custom')
-                                ->columnSpanFull(),
+                        $defaultReason = array_key_first($reasonOptions) ?: 'custom';
+                        $defaultAmount = 10;
+                        $defaultDeduction = false;
+                        if ($defaultReason !== 'custom') {
+                            $match = collect($predefinedReasons)->firstWhere('reason', $defaultReason);
+                            if ($match) {
+                                $defaultAmount = $match['amount'];
+                                $defaultDeduction = $match['type'] === 'deduction';
+                            }
+                        }
 
-                            // 4. Quick Reason Buttons
-                            ToggleButtons::make('quick_reason')
-                                ->label('السبب الشائع')
-                                ->options([
-                                    'مكافأة' => 'مكافأة',
-                                    'مشاركة' => 'مشاركة',
-                                    'التزام' => 'التزام',
-                                    'خصم سلوك' => 'خصم سلوك',
-                                    'custom' => 'سبب آخر',
-                                ])
-                                ->default('مكافأة')
-                                ->inline()
-                                ->columnSpanFull()
-                                ->live(),
+                        return [
+                            Grid::make(2)->schema([
+                                // 1. Quick Reason Select
+                                Select::make('quick_reason')
+                                    ->label('السبب')
+                                    ->options($reasonOptions)
+                                    ->default($defaultReason)
+                                    ->columnSpanFull()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, callable $set) use ($predefinedReasons) {
+                                        if ($state !== 'custom') {
+                                            $match = collect($predefinedReasons)->firstWhere('reason', $state);
+                                            if ($match) {
+                                                $set('is_deduction', $match['type'] === 'deduction');
+                                                $set('amount', $match['amount']);
+                                            }
+                                        } else {
+                                            $set('amount', null);
+                                        }
+                                    }),
 
-                            // 5. Custom Reason (Visible only if 'custom' is selected)
-                            TextInput::make('custom_reason')
-                                ->label('اكتب السبب')
-                                ->hidden(fn (Get $get) => $get('quick_reason') !== 'custom')
-                                ->required(fn (Get $get) => $get('quick_reason') === 'custom')
-                                ->columnSpanFull(),
-                        ]),
-                    ])
+                                // 2. Custom Reason (Visible only if 'custom' is selected)
+                                TextInput::make('custom_reason')
+                                    ->label('اكتب السبب')
+                                    ->hidden(fn (Get $get) => $get('quick_reason') !== 'custom')
+                                    ->required(fn (Get $get) => $get('quick_reason') === 'custom')
+                                    ->columnSpanFull(),
+
+                                // 3. Points amount
+                                TextInput::make('amount')
+                                    ->label('النقاط')
+                                    ->numeric()
+                                    ->required()
+                                    ->default($defaultAmount)
+                                    ->columnSpanFull(),
+
+                                // 4. Toggle for Adding/Removing
+                                Toggle::make('is_deduction')
+                                    ->label('خصم النقاط')
+                                    ->onColor('danger')
+                                    ->offColor('success')
+                                    ->onIcon('heroicon-m-minus-circle')
+                                    ->offIcon('heroicon-m-plus-circle')
+                                    ->default($defaultDeduction)
+                                    ->columnSpanFull(),
+                            ]),
+                        ];
+                    })
                     ->action(function ($record, array $data) {
-                        // Logic to determine amount
-                        $finalAmount = $data['quick_amount'] === 'custom'
-                            ? (int) $data['custom_amount']
-                            : (int) $data['quick_amount'];
-
-                        // If it's a deduction, make the number negative
+                        $finalAmount = (int) $data['amount'];
                         if ($data['is_deduction']) {
                             $finalAmount = -abs($finalAmount);
                         }
 
-                        // Logic to determine reason
                         $finalReason = $data['quick_reason'] === 'custom'
                             ? $data['custom_reason']
                             : $data['quick_reason'];

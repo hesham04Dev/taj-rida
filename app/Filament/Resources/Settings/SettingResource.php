@@ -22,13 +22,14 @@ class SettingResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return "إعداد";
+        return 'إعداد';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return "الإعدادات";
+        return 'الإعدادات';
     }
+
     public static function form(Schema $schema): Schema
     {
         return SettingForm::configure($schema);
@@ -57,6 +58,6 @@ class SettingResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()->role === 'admin';
+        return false;
     }
 }
