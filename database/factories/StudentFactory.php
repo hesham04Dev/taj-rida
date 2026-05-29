@@ -24,6 +24,7 @@ class StudentFactory extends Factory
             'points_multiplier' => 1.0,
             'father_name' => fake()->name('male'),
             'father_phone' => fake()->phoneNumber(),
+            'access_code' => fake()->unique()->bothify('????####'),
         ];
     }
 }

@@ -18,7 +18,10 @@ class PointTransactionFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'student_id' => \App\Models\Student::factory(),
+            'teacher_id' => \App\Models\User::factory(),
+            'amount' => fake()->numberBetween(5, 100),
+            'reason' => fake()->sentence(),
         ];
     }
 }
