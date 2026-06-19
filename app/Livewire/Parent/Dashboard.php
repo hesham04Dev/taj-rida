@@ -44,8 +44,16 @@ class Dashboard extends Component
             ? Student::withoutGlobalScopes()->find($this->selectedStudentId)
             : null;
 
+        $unreadNotifications = \App\Models\NotificationRead::with('notification.teacher')
+            ->where('guardian_id', Auth::guard('guardian')->id())
+            ->whereNull('read_at')
+            ->latest()
+            ->take(3)
+            ->get();
+
         return view('livewire.parent.dashboard', [
             'selectedStudent' => $selectedStudent,
+            'unreadNotifications' => $unreadNotifications,
         ])->layout('layouts.parent');
     }
 }

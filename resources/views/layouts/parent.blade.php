@@ -31,8 +31,40 @@
                 <span class="font-bold text-lg text-zinc-900 dark:text-white">تاج الرضا — بوابة أولياء الأمور</span>
             </div>
 
-            <div class="flex items-center gap-4">
-                
+            <div class="flex items-center gap-2">
+                {{-- Notifications Bell --}}
+                @php
+                    $unreadNotifCount = Auth::guard('guardian')->check()
+                        ? \App\Models\NotificationRead::where('guardian_id', Auth::guard('guardian')->id())->whereNull('read_at')->count()
+                        : 0;
+                    $unreadMsgCount = Auth::guard('guardian')->check()
+                        ? \App\Models\Message::whereHas('conversation', fn($q) => $q->where('guardian_id', Auth::guard('guardian')->id()))
+                            ->where('sender_type', 'teacher')->whereNull('read_at')->count()
+                        : 0;
+                @endphp
+
+                <a href="{{ route('parent.notifications') }}" class="relative p-2 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                    <flux:icon.bell class="size-5" />
+                    @if($unreadNotifCount > 0)
+                        <span class="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+                            {{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}
+                        </span>
+                    @endif
+                </a>
+
+                <a href="{{ route('parent.messages') }}" class="relative p-2 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                    <flux:icon.chat-bubble-left-right class="size-5" />
+                    @if($unreadMsgCount > 0)
+                        <span class="absolute top-1 right-1 w-4 h-4 rounded-full bg-violet-500 text-white text-[9px] font-bold flex items-center justify-center">
+                            {{ $unreadMsgCount > 9 ? '9+' : $unreadMsgCount }}
+                        </span>
+                    @endif
+                </a>
+
+                <a href="{{ route('parent.dashboard') }}" class="p-2 rounded-xl text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                    <flux:icon.home class="size-5" />
+                </a>
+
                 {{-- Premium Theme Switcher Button --}}
                 <flux:button
                     x-data="{

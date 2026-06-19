@@ -37,6 +37,8 @@
 use App\Http\Controllers\SuraReportController;
 use App\Http\Middleware\AuthenticateGuardian;
 use App\Http\Middleware\AuthenticateStudent;
+use App\Livewire\Parent\Messages;
+use App\Livewire\Parent\Notifications;
 use App\Livewire\Student\Dashboard;
 use App\Livewire\Student\Login;
 use Illuminate\Support\Facades\Auth;
@@ -78,6 +80,8 @@ Route::prefix('parent')->name('parent.')->group(function () {
 
     Route::middleware(AuthenticateGuardian::class)->group(function () {
         Route::get('dashboard', App\Livewire\Parent\Dashboard::class)->name('dashboard');
+        Route::get('notifications', Notifications::class)->name('notifications');
+        Route::get('messages', Messages::class)->name('messages');
     });
 });
 

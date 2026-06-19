@@ -9,6 +9,36 @@
         </div>
     </div>
 
+    {{-- Unread Notifications Alert --}}
+    @if($unreadNotifications->isNotEmpty())
+        <div class="mb-8">
+            <h2 class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">أحدث الإشعارات</h2>
+            <div class="space-y-3">
+                @foreach($unreadNotifications as $read)
+                    <a href="{{ route('parent.notifications') }}" class="block bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/50 rounded-2xl p-4 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
+                        <div class="flex items-start gap-3">
+                            <div class="mt-1 flex-shrink-0">
+                                <div class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm text-indigo-900 dark:text-indigo-200">{{ $read->notification->title }}</h3>
+                                <p class="text-sm text-indigo-800/70 dark:text-indigo-300/70 mt-0.5 line-clamp-1">{{ $read->notification->body }}</p>
+                                <p class="text-xs text-indigo-600/60 dark:text-indigo-400/60 mt-1">
+                                    من: {{ $read->notification->teacher->name }} &bull; {{ $read->notification->created_at->diffForHumans() }}
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                @endforeach
+                <div class="text-left mt-2">
+                    <a href="{{ route('parent.notifications') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium transition-colors">
+                        عرض جميع الإشعارات &larr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if($children->isEmpty())
         {{-- Empty state when parent has no registered children --}}
         <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-12 text-center max-w-xl mx-auto shadow-xl my-12">
