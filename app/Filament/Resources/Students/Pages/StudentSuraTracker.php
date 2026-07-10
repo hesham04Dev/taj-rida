@@ -13,6 +13,7 @@ use Date;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
@@ -22,6 +23,8 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 
 class StudentSuraTracker extends Page implements HasActions, HasForms
 {
@@ -99,6 +102,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
             ->icon('heroicon-o-plus')
             ->modalHeading(fn (array $arguments) => 'تسجيل إنجاز - سورة '.Sura::find($arguments['sura'] ?? 1)?->name)
             ->schema([
+                Hidden::make('sura_id'),
                 Toggle::make('is_need_rememorisation')
                     ->label('يحتاج لإعادة حفظ')
                     ->default(false)
@@ -133,6 +137,54 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                             ->numeric()
                             ->required(),
                     ]),
+                Grid::make(3)
+                    ->schema([
+
+                        Action::make('add_page')
+                            ->label('+ 1 صفحة')
+                            ->action(function (Get $get, Set $set) {
+                                $sura = Sura::find($get('sura_id'));
+                                $newToPage = $get('to_page') + 1;
+
+                                // If the new value exceeds the Sura's end page, cycle back to the starting point
+                                if ($sura && $newToPage > $sura->to_page) {
+                                    $set('to_page', $sura->to_page);
+                                } else {
+                                    $set('to_page', $newToPage);
+                                }
+                            }),
+
+                        Action::make('add_h_page')
+                            ->label('+ 0.5 صفحة')
+                            ->action(function (Get $get, Set $set) {
+                                $sura = Sura::find($get('sura_id'));
+                                $newToPage = $get('to_page') + 0.5;
+
+                                // If the new value exceeds the Sura's end page, cycle back to the starting point
+                                if ($sura && $newToPage > $sura->to_page) {
+                                    $set('to_page', $sura->to_page);
+                                } else {
+                                    $set('to_page', $newToPage);
+                                }
+                            }),
+                        Action::make('full_sura')
+                            ->label('كامل السورة')
+                            ->action(function (Get $get, Set $set) {
+                                // Read directly from the hidden form field
+                                $suraId = $get('sura_id');
+
+                                if (! $suraId) {
+                                    return;
+                                }
+
+                                $sura = Sura::find($suraId);
+
+                                if ($sura) {
+                                    $set('to_page', $sura->to_page);
+                                }
+                            }),
+
+                    ]),
                 ToggleButtons::make('grade')
                     ->label('التقييم')
                     ->options([
@@ -165,7 +217,8 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                     'is_need_rememorisation' => false,
                     'is_need_revision' => false,
                     'from_page' => $from_page,
-                    'to_page' => $sura?->to_page,
+                    'to_page' => $from_page,
+                    'sura_id' => $arguments['sura'] ?? 1,
                 ];
             })
             ->action(function (array $data, array $arguments) {
@@ -472,7 +525,8 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
 
     protected function setPageLogs($data, $memorization)
     {
-        PageLog::create([
+        // 1. Instantiate the log with all your needed data
+        $pageLog = new PageLog([
             'student_id' => $memorization->student_id,
             'type' => $data['type'] == 'memorization' ? 'recitation' : $data['type'],
             'from_page' => $data['from_page'],
@@ -480,6 +534,9 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
             'count' => $data['to_page'] - $data['from_page'],
             'date' => Date::now()->format('Y-m-d'),
         ]);
+
+        // 2. Save it quietly so the background PointTransaction listener stays asleep
+        $pageLog->saveQuietly();
     }
 
     protected function isFullSura($sura, $data)

@@ -73,7 +73,7 @@ class ManageSettings extends Page implements HasForms
                             ->label('نقاط الحلقات')
                             ->icon('heroicon-o-star')
                             ->schema([
-                                TextInput::make('recitation_points_per_page')
+                                TextInput::make('memorization_points_per_page')
                                     ->label('نقاط التسميع لكل صفحة')
                                     ->numeric()
                                     ->required()
