@@ -21,8 +21,12 @@ class LeaderboardWidget extends BaseWidget
     public function table(Table $table): Table
     {
         // Define the start and end of the current week once for consistency
-        $startOfWeek = Carbon::now()->startOfWeek();
-        $endOfWeek = Carbon::now()->endOfWeek();
+        // $startOfWeek = Carbon::now()->startOfWeek();
+        // $endOfWeek = Carbon::now()->endOfWeek();
+
+        // last seven days rather than strict week data
+        $endOfWeek = now()->endOfDay();
+        $startOfWeek = now()->subDays(7)->startOfDay();
 
         // Check if the user is not admin to filter their students only
         $teacherId = auth()->user()->role !== 'admin' ? auth()->id() : null;
