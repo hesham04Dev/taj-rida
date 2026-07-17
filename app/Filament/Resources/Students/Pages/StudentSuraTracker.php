@@ -300,8 +300,8 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                 $memorization->memorized_pages = $data['to_page'] - $sura->from_page;
 
                 $memorization->save();
-                $this->setPointTransation($memorization, $data);
-                $this->setPageLogs($data, $memorization);
+                $pageLog = $this->setPageLogs($data, $memorization);
+                $this->setPointTransation($memorization, $data, $pageLog);
             });
     }
 
@@ -430,8 +430,8 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                         $memorization->save();
 
                         $logData = array_merge($data, ['from_page' => $fromPage, 'to_page' => $toPage]);
-                        $this->setPointTransation($memorization, $logData);
-                        $this->setPageLogs($logData, $memorization);
+                        $pageLog = $this->setPageLogs($logData, $memorization);
+                        $this->setPointTransation($memorization, $logData, $pageLog);
                     }
 
                     $this->selectedSuras = [];
@@ -447,7 +447,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
         ];
     }
 
-    protected function setPointTransation(Memorization $memorization, $data)
+    protected function setPointTransation(Memorization $memorization, $data, $pageLog = null)
     {
         $isNoPoints = $data['is_no_points'] ?? false;
 
@@ -520,14 +520,17 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
             'teacher_id' => auth()->id() ?? 1,
             'amount' => $totalPoints,
             'reason' => $reason,
+            'sura_id' => $memorization->sura_id,
+            'page_log_id' => $pageLog?->id,
         ]);
     }
 
-    protected function setPageLogs($data, $memorization)
+    protected function setPageLogs($data, $memorization): PageLog
     {
         // 1. Instantiate the log with all your needed data
         $pageLog = new PageLog([
             'student_id' => $memorization->student_id,
+            'sura_id' => $memorization->sura_id,
             'type' => $data['type'] == 'memorization' ? 'recitation' : $data['type'],
             'from_page' => $data['from_page'],
             'to_page' => $data['to_page'],
@@ -537,6 +540,8 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
 
         // 2. Save it quietly so the background PointTransaction listener stays asleep
         $pageLog->saveQuietly();
+
+        return $pageLog;
     }
 
     protected function isFullSura($sura, $data)

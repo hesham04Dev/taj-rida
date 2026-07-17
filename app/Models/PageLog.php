@@ -22,4 +22,9 @@ class PageLog extends Model
     {
         return $this->belongsTo(Student::class);
     }
+
+    public function sura()
+    {
+        return $this->belongsTo(Sura::class);
+    }
 }

@@ -3,12 +3,10 @@
 namespace App\Filament\Resources\Students\RelationManagers;
 
 use App\Models\Sura;
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -17,13 +15,11 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
+use Filament\Tables\Columns\Layout\Panel;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
-
-use Filament\Tables\Columns\Layout\Panel;
-
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class MemorizationsRelationManager extends RelationManager
 {
@@ -36,8 +32,8 @@ class MemorizationsRelationManager extends RelationManager
         return $schema
             ->components([
                 Toggle::make('is_need_rememorisation')
-                        ->label('يحتاج لإعادة حفظ')
-                        ->default(false),
+                    ->label('يحتاج لإعادة حفظ')
+                    ->default(false),
                 Select::make('sura_id')
                     ->label('السورة')
                     ->options(Sura::orderBy('id')->pluck('name', 'id'))
@@ -103,9 +99,6 @@ class MemorizationsRelationManager extends RelationManager
                         ->nullable(),
                 ]),
 
-                
-                    
-
             ]);
     }
 
@@ -113,124 +106,115 @@ class MemorizationsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('sura.name')
-  
-       ->contentGrid([
-    'sm' => 1,
-    'md' => 2,
-    'xl' => 2,
-])
-->columns([
-    Stack::make([
-        // --- الرأس: اسم السورة وحالة الإتقان ---
-        Split::make([
-            Stack::make([
-                TextColumn::make('sura.name')
-                    ->weight('bold')
-                    ->size('lg')
-                    ->icon('heroicon-m-book-open'),
-                TextColumn::make('updated_at')
-                    ->date('Y-m-d')
-                    ->color('gray')
-                    ->size('xs'),
-            ]),
-            
-            TextColumn::make('memorization_percent')
-                ->getStateUsing(fn ($record) => $record->sura 
-                    ? round(($record->memorized_pages / $record->sura->pages_count) * 100).'%' 
-                    : '0%')
-                ->badge()
-                ->size('xl')
-                ->color(fn ($record) => $record->memorized_pages >= ($record->sura->pages_count ?? 0) ? 'success' : 'warning')
-                ->grow(false),
-        ])->extraAttributes(['class' => 'mb-3']),
+            ->contentGrid([
+                'sm' => 1,
+                'md' => 2,
+                'xl' => 2,
+            ])
+            ->columns([
+                Stack::make([
+                    // --- الرأس: اسم السورة وحالة الإتقان ---
+                    Split::make([
+                        Stack::make([
+                            TextColumn::make('sura.name')
+                                ->weight('bold')
+                                ->size('lg')
+                                ->icon('heroicon-m-book-open'),
+                            TextColumn::make('pages_range')
+                                ->getStateUsing(fn ($record) => $record->sura
+                                    ? 'من صفحة '.$record->sura->from_page.' إلى '.($record->sura->from_page + $record->memorized_pages)
+                                    : '-')
+                                ->color('primary')
+                                ->size('sm')
+                                ->icon('heroicon-m-document-text'),
+                            TextColumn::make('updated_at')
+                                ->date('Y-m-d')
+                                ->color('gray')
+                                ->size('xs'),
+                        ]),
 
-        // --- شبكة البيانات المقسمة بإطارات (Borders) ---
-        Split::make([
-            Panel::make([
-                    Stack::make([
-                        TextColumn::make('label_mem')
-                            ->default('بيانات الحفظ')
-                            ->weight('bold')
-                            ->size('sm')
-                            ->color('info'),
-                        TextColumn::make('memorization_degree')
-                            ->formatStateUsing(fn ($state) => "الدرجة: $state")
-                            ->icon('heroicon-m-star'),
-                        TextColumn::make('memorization_repetition')
-                            ->formatStateUsing(fn ($state) => "التكرار: $state")
-                            ->icon('heroicon-m-arrow-path'),
-                    ])->space(1),
-                ])->collapsible(),
+                        TextColumn::make('memorization_percent')
+                            ->getStateUsing(fn ($record) => $record->sura
+                                ? round(($record->memorized_pages / $record->sura->pages_count) * 100).'%'
+                                : '0%')
+                            ->badge()
+                            ->size('xl')
+                            ->color(fn ($record) => $record->memorized_pages >= ($record->sura->pages_count ?? 0) ? 'success' : 'warning')
+                            ->grow(false),
+                    ])->extraAttributes(['class' => 'mb-3']),
 
-                // 2. قسم المراجعة (داخل Panel لعمل بوردر)
-                Panel::make([
-                    Stack::make([
-                        TextColumn::make('label_rev')
-                            ->default('بيانات المراجعة')
-                            ->weight('bold')
-                            ->size('sm')
-                            ->color('success'),
-                        TextColumn::make('revision_degree')
-                            ->formatStateUsing(fn ($state) => "الدرجة: $state")
-                            ->icon('heroicon-m-check-badge'),
-                        TextColumn::make('revision_repetition')
-                            ->formatStateUsing(fn ($state) => "التكرار: $state")
-                            ->icon('heroicon-m-arrow-path-rounded-square'),
-                    ])->space(1),
-                ]),
-        ]),
-                
+                    // --- شبكة البيانات المقسمة بإطارات (Borders) ---
+                    Split::make([
+                        Panel::make([
+                            Stack::make([
+                                TextColumn::make('label_mem')
+                                    ->default('بيانات الحفظ')
+                                    ->weight('bold')
+                                    ->size('sm')
+                                    ->color('info'),
+                                TextColumn::make('memorization_degree')
+                                    ->formatStateUsing(fn ($state) => "الدرجة: $state")
+                                    ->icon('heroicon-m-star'),
+                                TextColumn::make('memorization_repetition')
+                                    ->formatStateUsing(fn ($state) => "التكرار: $state")
+                                    ->icon('heroicon-m-arrow-path'),
+                            ])->space(1),
+                        ])->collapsible(),
 
-            // ]),
-
-        // 3. قسم الاختبار (بوردر عريض أسفل الكارت)
-        Panel::make([
-            // Grid::make(3)
-            Split::make([
-                Split::make([
-                        TextColumn::make('label_test')->default('آخر اختبار')->size('xs text-gray-500')->grow(false),
-                        TextColumn::make('last_test_name')->weight('bold')->default('-'),
+                        // 2. قسم المراجعة (داخل Panel لعمل بوردر)
+                        Panel::make([
+                            Stack::make([
+                                TextColumn::make('label_rev')
+                                    ->default('بيانات المراجعة')
+                                    ->weight('bold')
+                                    ->size('sm')
+                                    ->color('success'),
+                                TextColumn::make('revision_degree')
+                                    ->formatStateUsing(fn ($state) => "الدرجة: $state")
+                                    ->icon('heroicon-m-check-badge'),
+                                TextColumn::make('revision_repetition')
+                                    ->formatStateUsing(fn ($state) => "التكرار: $state")
+                                    ->icon('heroicon-m-arrow-path-rounded-square'),
+                            ])->space(1),
+                        ]),
                     ]),
-                    Split::make([
-                    Split::make([
-                        TextColumn::make('label_grade')->default('النتيجة')->size('xs text-gray-500')->grow(false),
-                        TextColumn::make('test_grade')->badge()->color('primary'),
+
+                    // ]),
+
+                    // 3. قسم الاختبار (بوردر عريض أسفل الكارت)
+                    Panel::make([
+                        // Grid::make(3)
+                        Split::make([
+                            Split::make([
+                                TextColumn::make('label_test')->default('آخر اختبار')->size('xs text-gray-500')->grow(false),
+                                TextColumn::make('last_test_name')->weight('bold')->default('-'),
+                            ]),
+                            Split::make([
+                                Split::make([
+                                    TextColumn::make('label_grade')->default('النتيجة')->size('xs text-gray-500')->grow(false),
+                                    TextColumn::make('test_grade')->badge()->color('primary'),
+                                ]),
+                                Split::make([
+                                    TextColumn::make('label_count')->default('المرات')->size('xs text-gray-500')->grow(false),
+                                    TextColumn::make('test_counts')->icon('heroicon-m-hashtag'),
+                                ]), ]),
+                        ]),
+                        // ->schema([
+
+                        // ]),
                     ]),
-                    Split::make([
-                        TextColumn::make('label_count')->default('المرات')->size('xs text-gray-500')->grow(false)   ,
-                        TextColumn::make('test_counts')->icon('heroicon-m-hashtag'),
-                    ]),])
-            ]),
-                // ->schema([
-                    
-                // ]),
-        ]),
 
-        // 4. تنبيه إعادة الحفظ (يظهر فقط إذا كانت القيمة نعم)
-        TextColumn::make('is_need_rememorisation')
-            ->visible(fn ($state) => $state)
-            ->formatStateUsing(fn () => '⚠️ يحتاج الطالب لإعادة تركيز وحفظ')
-            ->color('danger')
-            ->weight('bold')
-            ->alignCenter(),
+                    // 4. تنبيه إعادة الحفظ (يظهر فقط إذا كانت القيمة نعم)
+                    TextColumn::make('is_need_rememorisation')
+                        ->visible(fn ($state) => $state)
+                        ->formatStateUsing(fn () => '⚠️ يحتاج الطالب لإعادة تركيز وحفظ')
+                        ->color('danger')
+                        ->weight('bold')
+                        ->alignCenter(),
 
-    ])->space(3),
+                ])->space(3),
 
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
-])
+            ])
             ->recordActions([
                 EditAction::make()->label('تعديل'),
                 DeleteAction::make()->label('حذف'),

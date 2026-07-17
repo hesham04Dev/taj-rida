@@ -33,4 +33,19 @@ class Memorization extends Model
     {
         return $this->belongsTo(Sura::class);
     }
+
+    protected static function booted()
+    {
+        static::deleted(function (Memorization $memorization) {
+            // Delete points associated with this student and sura
+            PointTransaction::where('student_id', $memorization->student_id)
+                ->where('sura_id', $memorization->sura_id)
+                ->delete();
+
+            // Delete page logs associated with this student and sura
+            PageLog::where('student_id', $memorization->student_id)
+                ->where('sura_id', $memorization->sura_id)
+                ->delete();
+        });
+    }
 }

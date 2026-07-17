@@ -49,7 +49,14 @@ class PageLogObserver
                 'teacher_id' => auth()->id() ?? $student->teacher_id ?? 1,
                 'amount' => $amount,
                 'reason' => $pageLog->type === 'recitation' ? 'تسميع' : 'مراجعة',
+                'sura_id' => $pageLog->sura_id,
+                'page_log_id' => $pageLog->id,
             ]);
         }
+    }
+
+    public function deleted(PageLog $pageLog): void
+    {
+        PointTransaction::where('page_log_id', $pageLog->id)->delete();
     }
 }

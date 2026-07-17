@@ -20,4 +20,14 @@ class PointTransaction extends Model
     {
         return $this->belongsTo(User::class, 'teacher_id');
     }
+
+    public function sura()
+    {
+        return $this->belongsTo(Sura::class);
+    }
+
+    public function pageLog()
+    {
+        return $this->belongsTo(PageLog::class);
+    }
 }

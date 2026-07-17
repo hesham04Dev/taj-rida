@@ -130,7 +130,10 @@
                         </div>
                         @forelse($memorizations->whereNotNull('memorization_degree') as $m)
                             <div wire:key="mem-{{ $m->id }}" class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200 dark:border-zinc-700/50">
-                                <span class="text-sm text-zinc-800 dark:text-zinc-300 font-medium">{{ $m->sura->name }}</span>
+                                <div class="flex flex-col">
+                                    <span class="text-sm text-zinc-800 dark:text-zinc-300 font-medium">{{ $m->sura->name }}</span>
+                                    <span class="text-xs text-zinc-500 dark:text-zinc-400">من صفحة {{ $m->sura->from_page }} إلى {{ $m->sura->from_page + $m->memorized_pages }}</span>
+                                </div>
                                 @php
                                     $deg = $m->memorization_degree;
                                     $color = match(true) {
@@ -156,7 +159,10 @@
                         </div>
                         @forelse($memorizations->whereNotNull('revision_degree') as $m)
                             <div wire:key="rev-{{ $m->id }}" class="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200 dark:border-zinc-700/50">
-                                <span class="text-sm text-zinc-855 dark:text-zinc-300 font-medium">{{ $m->sura->name }}</span>
+                                <div class="flex flex-col">
+                                    <span class="text-sm text-zinc-800 dark:text-zinc-300 font-medium">{{ $m->sura->name }}</span>
+                                    <span class="text-xs text-zinc-500 dark:text-zinc-400">من صفحة {{ $m->sura->from_page }} إلى {{ $m->sura->from_page + $m->memorized_pages }}</span>
+                                </div>
                                 @php
                                     $deg = $m->revision_degree;
                                     $color = match(true) {
