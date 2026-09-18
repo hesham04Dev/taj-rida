@@ -19,16 +19,21 @@ class CreditorResource extends Resource
 {
     protected static ?string $model = Creditor::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUser;
 
     public static function getModelLabel(): string
     {
-        return 'داعم / دائن';
+        return 'دائن';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'الداعمين والدائنين';
+        return 'الدائنين';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'الميزانية';
     }
 
     public static function form(Schema $schema): Schema

@@ -37,9 +37,19 @@ x make it production ready
 
 
 [x] add budget to the system
-[ ] add the points card to the system
+[x] add the points card to the system
 
 [ ] add gifts calc to the system (need more working)
 [ ] add whatsapp api or something for message automation
 [ ] add knowledge base to the system and fill it 
 [ ] what we should do when the dawra ends???!!!
+
+
+[ ] the page logs need fix to match the new way and in the add log action in the student tracker should updated so the done pages background color is gray
+
+[ ] in the new input way i think in adding a percentage for the last selected item (so we give him points according to that and store this in the db eg: he memorize 60% of sura Amma so when re memorize it just add points for the 40% of the sura)
+
+
+هلق بخصوص الصفحات الي سمعها الشخص نحنا منقدر نعمل الزر نغير لونه مثلا رمادي اكثر من غيره بينعرف انه سمعها 
+بس بعدني بخصوص الاقسام ما بشوف تتسجل الا كاملة مابعرف بدها مشاورة او شي
+

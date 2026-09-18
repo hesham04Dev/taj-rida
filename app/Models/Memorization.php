@@ -29,22 +29,22 @@ class Memorization extends Model
         return $this->belongsTo(Student::class);
     }
 
-    public function sura(): BelongsTo
+    public function curriculum(): BelongsTo
     {
-        return $this->belongsTo(Sura::class);
+        return $this->belongsTo(Curriculum::class);
     }
 
-    protected static function booted()
+    protected static function booted(): void
     {
         static::deleted(function (Memorization $memorization) {
-            // Delete points associated with this student and sura
+            // Delete points associated with this student and curriculum item
             PointTransaction::where('student_id', $memorization->student_id)
-                ->where('sura_id', $memorization->sura_id)
+                ->where('curriculum_id', $memorization->curriculum_id)
                 ->delete();
 
-            // Delete page logs associated with this student and sura
+            // Delete page logs associated with this student and curriculum item
             PageLog::where('student_id', $memorization->student_id)
-                ->where('sura_id', $memorization->sura_id)
+                ->where('curriculum_id', $memorization->curriculum_id)
                 ->delete();
         });
     }

@@ -19,7 +19,7 @@ class BudgetTransactionResource extends Resource
 {
     protected static ?string $model = BudgetTransaction::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
     public static function getModelLabel(): string
     {
@@ -29,6 +29,11 @@ class BudgetTransactionResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return 'حركات الميزانية';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'الميزانية';
     }
 
     public static function form(Schema $schema): Schema

@@ -72,7 +72,7 @@ class NeedsMemorizationPage extends Page
 
     public static function groupedNeeds(): array
     {
-        $query = Memorization::with(['student', 'sura'])
+        $query = Memorization::with(['student', 'curriculum'])
             ->where(function ($q) {
                 $q->where('is_need_rememorisation', true)
                     ->orWhere('is_need_revision', true);
@@ -86,17 +86,13 @@ class NeedsMemorizationPage extends Page
             });
         }
 
-        $x = $query->get()
+        return $query->get()
             ->groupBy('student_id')
             ->map(function ($items) {
                 $buildChip = fn ($m) => [
-                    'name' => $m->sura->name,
+                    'name' => $m->curriculum->name,
                     'need_from_page' => $m->need_from_page,
                     'need_to_page' => $m->need_to_page,
-                    // Full sura = pages match entire sura, or no page range stored.
-                    // 'is_full_sura' => ! $m->need_from_page
-                    //     || ($m->need_from_page == $m->sura->from_page
-                    //         && $m->need_to_page == $m->sura->to_page),
                 ];
 
                 return [
@@ -109,9 +105,6 @@ class NeedsMemorizationPage extends Page
             })
             ->values()
             ->all();
-        // dd($x);
-
-        return $x;
     }
 
     public function getGroupedNeedsProperty()

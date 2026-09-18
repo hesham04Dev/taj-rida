@@ -21,7 +21,7 @@ class PointsCards extends Page
 
     public static function getNavigationGroup(): ?string
     {
-        return 'الطلاب';
+        return 'سوق النقاط';
     }
 
     public function getTitle(): string

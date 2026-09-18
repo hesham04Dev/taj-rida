@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Students\RelationManagers;
 
-use App\Models\Sura;
+use App\Models\Curriculum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -13,7 +13,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\Layout\Panel;
 use Filament\Tables\Columns\Layout\Split;
@@ -25,7 +24,7 @@ class MemorizationsRelationManager extends RelationManager
 {
     protected static string $relationship = 'memorizations';
 
-    protected static ?string $title = 'السور المحفوظة';
+    protected static ?string $title = 'الأجزاء المحفوظة';
 
     public function form(Schema $schema): Schema
     {
@@ -34,34 +33,36 @@ class MemorizationsRelationManager extends RelationManager
                 Toggle::make('is_need_rememorisation')
                     ->label('يحتاج لإعادة حفظ')
                     ->default(false),
-                Select::make('sura_id')
-                    ->label('السورة')
-                    ->options(Sura::orderBy('id')->pluck('name', 'id'))
+
+                Select::make('curriculum_id')
+                    ->label('الجزء')
+                    ->options(
+                        Curriculum::orderBy('number')
+                            ->get()
+                            ->mapWithKeys(fn ($j) => [$j->id => $j->name])
+                    )
                     ->required()
-                    ->searchable()
-                    ->live()
-                    ->afterStateUpdated(function (Get $get, callable $set, $state) {
-                        $sura = Sura::find($state);
-                        if ($sura) {
-                            $set('memorized_pages', $sura->pages_count);
-                        }
-                    }),
+                    ->searchable(),
+
                 Grid::make(3)->schema([
                     TextInput::make('memorized_pages')
-                        ->label('عدد الصفحات المحفوظة')
+                        ->label('عدد العناصر المحفوظة')
                         ->numeric()
                         ->default(0)
                         ->required(),
+
                     TextInput::make('memorization_repetition')
                         ->label('عدد مرات الحفظ')
                         ->numeric()
                         ->default(1)
                         ->required(),
+
                     TextInput::make('revision_repetition')
                         ->label('عدد مرات المراجعة')
                         ->numeric()
                         ->default(0),
                 ]),
+
                 Grid::make(2)->schema([
                     ToggleButtons::make('memorization_degree')
                         ->label('درجة الحفظ')
@@ -74,6 +75,7 @@ class MemorizationsRelationManager extends RelationManager
                         ])
                         ->inline()
                         ->nullable(),
+
                     ToggleButtons::make('revision_degree')
                         ->label('درجة المراجعة')
                         ->options([
@@ -86,26 +88,28 @@ class MemorizationsRelationManager extends RelationManager
                         ->inline()
                         ->nullable(),
                 ]),
+
                 Grid::make(3)->schema([
                     TextInput::make('test_grade')
                         ->label('درجة الاختبار')
                         ->nullable(),
+
                     TextInput::make('test_counts')
                         ->label('مرات الاختبار')
                         ->numeric()
                         ->default(0),
+
                     TextInput::make('last_test_name')
                         ->label('اسم آخر اختبار')
                         ->nullable(),
                 ]),
-
             ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('sura.name')
+            ->recordTitleAttribute('curriculum.name')
             ->contentGrid([
                 'sm' => 1,
                 'md' => 2,
@@ -113,20 +117,21 @@ class MemorizationsRelationManager extends RelationManager
             ])
             ->columns([
                 Stack::make([
-                    // --- الرأس: اسم السورة وحالة الإتقان ---
                     Split::make([
                         Stack::make([
-                            TextColumn::make('sura.name')
+                            TextColumn::make('curriculum.name')
                                 ->weight('bold')
                                 ->size('lg')
                                 ->icon('heroicon-m-book-open'),
-                            TextColumn::make('pages_range')
-                                ->getStateUsing(fn ($record) => $record->sura
-                                    ? 'من صفحة '.$record->sura->from_page.' إلى '.($record->sura->from_page + $record->memorized_pages)
-                                    : '-')
+
+                            TextColumn::make('memorized_count')
+                                ->getStateUsing(fn ($record) => $record->memorized_pages
+                                    ? "محفوظ {$record->memorized_pages} عنصر"
+                                    : 'لم يبدأ')
                                 ->color('primary')
                                 ->size('sm')
                                 ->icon('heroicon-m-document-text'),
+
                             TextColumn::make('updated_at')
                                 ->date('Y-m-d')
                                 ->color('gray')
@@ -134,16 +139,17 @@ class MemorizationsRelationManager extends RelationManager
                         ]),
 
                         TextColumn::make('memorization_percent')
-                            ->getStateUsing(fn ($record) => $record->sura
-                                ? round(($record->memorized_pages / $record->sura->pages_count) * 100).'%'
+                            ->getStateUsing(fn ($record) => $record->curriculum
+                                ? (count($record->curriculum->children) > 0
+                                    ? round(($record->memorized_pages / count($record->curriculum->children)) * 100).'%'
+                                    : '0%')
                                 : '0%')
                             ->badge()
                             ->size('xl')
-                            ->color(fn ($record) => $record->memorized_pages >= ($record->sura->pages_count ?? 0) ? 'success' : 'warning')
+                            ->color(fn ($record) => ($record->memorized_pages ?? 0) >= count($record->curriculum?->children ?? []) ? 'success' : 'warning')
                             ->grow(false),
                     ])->extraAttributes(['class' => 'mb-3']),
 
-                    // --- شبكة البيانات المقسمة بإطارات (Borders) ---
                     Split::make([
                         Panel::make([
                             Stack::make([
@@ -161,7 +167,6 @@ class MemorizationsRelationManager extends RelationManager
                             ])->space(1),
                         ])->collapsible(),
 
-                        // 2. قسم المراجعة (داخل Panel لعمل بوردر)
                         Panel::make([
                             Stack::make([
                                 TextColumn::make('label_rev')
@@ -179,11 +184,7 @@ class MemorizationsRelationManager extends RelationManager
                         ]),
                     ]),
 
-                    // ]),
-
-                    // 3. قسم الاختبار (بوردر عريض أسفل الكارت)
                     Panel::make([
-                        // Grid::make(3)
                         Split::make([
                             Split::make([
                                 TextColumn::make('label_test')->default('آخر اختبار')->size('xs text-gray-500')->grow(false),
@@ -197,14 +198,11 @@ class MemorizationsRelationManager extends RelationManager
                                 Split::make([
                                     TextColumn::make('label_count')->default('المرات')->size('xs text-gray-500')->grow(false),
                                     TextColumn::make('test_counts')->icon('heroicon-m-hashtag'),
-                                ]), ]),
+                                ]),
+                            ]),
                         ]),
-                        // ->schema([
-
-                        // ]),
                     ]),
 
-                    // 4. تنبيه إعادة الحفظ (يظهر فقط إذا كانت القيمة نعم)
                     TextColumn::make('is_need_rememorisation')
                         ->visible(fn ($state) => $state)
                         ->formatStateUsing(fn () => '⚠️ يحتاج الطالب لإعادة تركيز وحفظ')
@@ -213,7 +211,6 @@ class MemorizationsRelationManager extends RelationManager
                         ->alignCenter(),
 
                 ])->space(3),
-
             ])
             ->recordActions([
                 EditAction::make()->label('تعديل'),
@@ -224,6 +221,6 @@ class MemorizationsRelationManager extends RelationManager
                     DeleteBulkAction::make()->label('حذف'),
                 ]),
             ])
-            ->defaultSort('sura_id');
+            ->defaultSort('curriculum_id');
     }
 }

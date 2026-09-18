@@ -36,6 +36,11 @@ class ManageSettings extends Page implements HasForms
         return 'الإعدادات العامة للبرنامج';
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return 'إعدادات';
+    }
+
     public static function canAccess(): bool
     {
         return auth()->user()?->role === 'admin';

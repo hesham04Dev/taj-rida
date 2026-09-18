@@ -10,7 +10,6 @@
             --shadow-lg: 0 10px 25px -5px rgba(50, 205, 50, 0.15);
         }
 
-        /* Dark Mode overrides for Filament */
         .dark :root {
             --card-bg: #111827;
             --card-border: rgba(255, 255, 255, 0.05);
@@ -18,12 +17,12 @@
             --text-secondary: #9ca3af;
         }
 
-        .sura-container {
+        .juz-container {
             direction: rtl;
             font-family: inherit;
         }
 
-        /* Legend Styling */
+        /* Legend */
         .legend-bar {
             display: flex;
             flex-wrap: wrap;
@@ -50,9 +49,7 @@
             color: var(--text-secondary);
         }
 
-        .dark .legend-item {
-            color: #f3f4f6;
-        }
+        .dark .legend-item { color: #f3f4f6; }
 
         .dot {
             width: 8px;
@@ -60,48 +57,45 @@
             border-radius: 50%;
         }
 
-        /* Grid Layout */
-        .sura-grid {
+        /* Grid */
+        .juz-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 16px;
         }
 
-        /* Card Styling */
-        .sura-card {
+        /* Card */
+        .juz-card {
             position: relative;
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 16px;
-            padding: 20px 15px;
+            padding: 18px 14px 14px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 110px;
+            min-height: 115px;
             box-shadow: var(--shadow-sm);
             overflow: hidden;
         }
 
-        .dark .sura-card {
+        .dark .juz-card {
             background: #111827;
             border-color: rgba(255, 255, 255, 0.05);
-
         }
 
-        .dark .sura-card .sura-name {
-            color: #f3f4f6;
-        }
+        .dark .juz-card .juz-name { color: #f3f4f6; }
 
-        .sura-card:hover {
+        .juz-card:hover {
             transform: translateY(-4px);
             border-color: var(--accent-lime);
             box-shadow: var(--shadow-lg);
         }
 
-        .sura-id {
+        .juz-number {
             position: absolute;
             top: 10px;
             right: 12px;
@@ -111,19 +105,18 @@
             opacity: 0.5;
         }
 
-        .sura-name {
-            font-size: 18px;
+        .juz-name {
+            font-size: 13px;
             font-weight: 800;
             color: var(--text-primary);
-            margin: 10px 0;
+            margin: 10px 0 4px;
             transition: color 0.3s ease;
+            line-height: 1.4;
         }
 
-        .sura-card:hover .sura-name {
-            color: var(--accent-lime);
-        }
+        .juz-card:hover .juz-name { color: var(--accent-lime); }
 
-        .sura-pages {
+        .juz-children-count {
             font-size: 11px;
             color: var(--text-secondary);
             background: rgba(0, 0, 0, 0.03);
@@ -132,28 +125,34 @@
             align-self: center;
         }
 
-        .dark .sura-pages {
-            background: rgba(255, 255, 255, 0.05);
-        }
+        .dark .juz-children-count { background: rgba(255, 255, 255, 0.05); }
 
-        /* Status Line Indicator */
-        .status-indicator {
+        /* Progress bar */
+        .juz-progress-bar {
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 100%;
             height: 4px;
-            opacity: 0.8;
+            width: 100%;
+            background: rgba(0,0,0,0.07);
+            border-radius: 0 0 16px 16px;
+            overflow: hidden;
         }
 
-        .sura-percent {
-            font-size: 12px;
+        .juz-progress-fill {
+            height: 100%;
+            border-radius: 0 0 16px 16px;
+            transition: width 0.4s ease;
+        }
+
+        .juz-percent {
+            font-size: 11px;
             font-weight: 700;
             color: var(--accent-lime);
             margin: 2px 0;
         }
 
-        .sura-reps {
+        .juz-reps {
             display: flex;
             justify-content: center;
             gap: 8px;
@@ -162,15 +161,15 @@
             margin-top: 2px;
         }
 
-        /* Custom Classes to Replace Tailwind */
-        .sura-checkbox-container {
+        /* Checkbox */
+        .juz-checkbox-container {
             position: absolute;
             top: 12px;
             right: 12px;
             z-index: 10;
         }
 
-        .sura-checkbox {
+        .juz-checkbox {
             height: 16px;
             width: 16px;
             border-radius: 4px;
@@ -179,7 +178,8 @@
             cursor: pointer;
         }
 
-        .sura-tested-icon {
+        /* Badges */
+        .juz-tested-icon {
             position: absolute;
             top: 8px;
             left: 8px;
@@ -189,7 +189,7 @@
             height: 20px;
         }
 
-        .sura-rememorize-badge {
+        .juz-rememorize-badge {
             position: absolute;
             top: 8px;
             left: 8px;
@@ -200,7 +200,6 @@
             font-weight: 700;
             padding: 2px 6px;
             border-radius: 9999px;
-            letter-spacing: 0.05em;
             animation: pulse-orange 1.8s ease-in-out infinite;
         }
 
@@ -209,7 +208,7 @@
             50% { opacity: 0.75; transform: scale(1.08); }
         }
 
-        .sura-revision-badge {
+        .juz-revision-badge {
             position: absolute;
             top: 8px;
             left: 8px;
@@ -220,7 +219,6 @@
             font-weight: 700;
             padding: 2px 6px;
             border-radius: 9999px;
-            letter-spacing: 0.05em;
             animation: pulse-purple 1.8s ease-in-out infinite;
         }
 
@@ -229,7 +227,7 @@
             50% { opacity: 0.75; transform: scale(1.08); }
         }
 
-        .sura-card-body {
+        .juz-card-body {
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -237,6 +235,7 @@
             padding-top: 8px;
         }
 
+        /* Floating bulk action button */
         .floating-action-btn-container {
             position: fixed;
             bottom: 32px;
@@ -271,15 +270,15 @@
         }
     </style>
 
-    <div class="sura-container">
+    <div class="juz-container">
         {{-- Legend --}}
         <div class="legend-bar">
             @php
                 $legend = [
-                    ['c' => '#94a3b8', 'l' => 'لم تحفظ'],
-                    ['c' => '#38bdf8', 'l' => 'ممتاز'],
-                    ['c' => '#6366f1', 'l' => 'جيد'],
-                    ['c' => '#fbbf24', 'l' => 'ضعيف'],
+                    ['c' => '#94a3b8', 'l' => 'لم يبدأ'],
+                    ['c' => '#38bdf8', 'l' => 'حفظ ممتاز'],
+                    ['c' => '#6366f1', 'l' => 'حفظ جيد'],
+                    ['c' => '#fbbf24', 'l' => 'حفظ ضعيف'],
                     ['c' => '#32CD32', 'l' => 'مراجعة ممتازة'],
                     ['c' => '#059669', 'l' => 'مراجعة جيدة'],
                 ];
@@ -292,76 +291,82 @@
             @endforeach
         </div>
 
-        {{-- Grid --}}
-        <div class="sura-grid">
-            @foreach($this->suras as $sura)
+        {{-- Juz Grid --}}
+        <div class="juz-grid">
+            @foreach($this->curriculum as $juz)
                 @php
                     $color = match (true) {
-                        str_contains($sura->status_color, 'lime') => '#32CD32',
-                        str_contains($sura->status_color, 'light_blue') => '#38bdf8',
-                        str_contains($sura->status_color, 'blue') => '#6366f1',
-                        str_contains($sura->status_color, 'yellow') => '#fbbf24',
-                        str_contains($sura->status_color, 'dark_green') => '#059669',
-                        default => '#94a3b8',
+                        str_contains($juz->status_color, 'lime')       => '#32CD32',
+                        str_contains($juz->status_color, 'light_blue') => '#38bdf8',
+                        str_contains($juz->status_color, 'blue')       => '#6366f1',
+                        str_contains($juz->status_color, 'yellow')     => '#fbbf24',
+                        str_contains($juz->status_color, 'dark_green') => '#059669',
+                        default                                         => '#94a3b8',
                     };
+                    $percent = $juz->memorization_percent;
                 @endphp
 
-                <div class="sura-card">
-                    <div class="sura-checkbox-container" wire:click.stop>
-                        <input type="checkbox" wire:model.live="selectedSuras" value="{{ $sura->id }}"
-                            class="sura-checkbox">
+                <div class="juz-card">
+                    {{-- Multi-select checkbox --}}
+                    <div class="juz-checkbox-container" wire:click.stop>
+                        <input type="checkbox"
+                               wire:model.live="selectedJuz"
+                               value="{{ $juz->id }}"
+                               class="juz-checkbox">
                     </div>
 
-                    @if($sura->is_tested)
-                        <div class="sura-tested-icon" title="تم اختباره">
+                    {{-- Status badges --}}
+                    @if($juz->is_tested)
+                        <div class="juz-tested-icon" title="تم اختباره">
                             <x-heroicon-s-check-circle />
                         </div>
-                    @elseif($sura->is_need_rememorisation)
-                        <div class="sura-rememorize-badge"
-                             title="يحتاج إعادة حفظ{{ $sura->need_from_page ? ' (ص '.$sura->need_from_page.' → '.$sura->need_to_page.')' : '' }}">
-                            إعادة
-                        </div>
-                    @elseif($sura->is_need_revision)
-                        <div class="sura-revision-badge"
-                             title="يحتاج مراجعة{{ $sura->need_from_page ? ' (ص '.$sura->need_from_page.' → '.$sura->need_to_page.')' : '' }}">
-                            مراجعة
-                        </div>
+                    @elseif($juz->is_need_rememorisation)
+                        <div class="juz-rememorize-badge" title="يحتاج إعادة حفظ">إعادة</div>
+                    @elseif($juz->is_need_revision)
+                        <div class="juz-revision-badge" title="يحتاج مراجعة">مراجعة</div>
                     @endif
 
-                    <div wire:click="mountAction('addLog', { sura: {{ $sura->id }} })" class="sura-card-body">
-                        <span class="sura-id">{{ $sura->id }}</span>
+                    {{-- Card body — clicking opens the tasmee dialog --}}
+                    <div wire:click="mountAction('addLog', { juz: {{ $juz->id }} })" class="juz-card-body">
+                        <span class="juz-number">{{ $juz->number }}</span>
 
-                        <div class="sura-name">{{ $sura->name }}</div>
+                        <div class="juz-name">{{ $juz->name }}</div>
 
-                        <div class="sura-pages">{{ $sura->pages_count }} صفحة</div>
+                        <div class="juz-children-count">
+                            {{ $juz->children_count }} {{ $juz->number === 30 ? 'سورة' : 'صفحة' }}
+                        </div>
 
-                        @if($sura->memorization_percent > 0 && $sura->memorization_percent < 100)
-                            <div class="sura-percent">{{ $sura->memorization_percent }}%</div>
+                        @if($percent > 0 && $percent < 100)
+                            <div class="juz-percent">{{ $percent }}%</div>
                         @endif
 
-                        @if($sura->memorization_repetition > 0 || $sura->revision_repetition > 0)
-                            <div class="sura-reps" dir="rtl">
-                                @if($sura->memorization_repetition > 0)
-                                    <span title="مرات الحفظ">⟳{{ $sura->memorization_repetition }}</span>
+                        @if($juz->memorization_repetition > 0 || $juz->revision_repetition > 0)
+                            <div class="juz-reps" dir="rtl">
+                                @if($juz->memorization_repetition > 0)
+                                    <span title="مرات الحفظ">⟳{{ $juz->memorization_repetition }}</span>
                                 @endif
-                                @if($sura->revision_repetition > 0)
-                                    <span title="مرات المراجعة" style="color: #32CD32">↺{{ $sura->revision_repetition }}</span>
+                                @if($juz->revision_repetition > 0)
+                                    <span title="مرات المراجعة" style="color: #32CD32">↺{{ $juz->revision_repetition }}</span>
                                 @endif
                             </div>
                         @endif
                     </div>
-                    {{-- Visual indicator --}}
-                    <div class="status-indicator" style="background-color: {{ $color }}"></div>
+
+                    {{-- Progress bar --}}
+                    <div class="juz-progress-bar">
+                        <div class="juz-progress-fill"
+                             style="width: {{ $percent }}%; background-color: {{ $color }};"></div>
+                    </div>
                 </div>
             @endforeach
         </div>
     </div>
 
-    @if(count($selectedSuras) > 0)
+    @if(count($selectedJuz) > 0)
         <div class="floating-action-btn-container">
             <button wire:click="mountAction('bulkAddLog')" class="floating-action-btn">
                 <x-heroicon-o-check-circle class="floating-action-icon" />
-                تسجيل إنجاز ({{ count($selectedSuras) }})
+                تسجيل إنجاز ({{ count($selectedJuz) }})
             </button>
         </div>
     @endif
