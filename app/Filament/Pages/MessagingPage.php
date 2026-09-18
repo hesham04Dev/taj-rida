@@ -3,7 +3,10 @@
 namespace App\Filament\Pages;
 
 use App\Models\Conversation;
+use App\Models\Guardian;
 use App\Models\Message;
+use App\Models\Student;
+use App\Models\StudentGuardian;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -39,11 +42,11 @@ class MessagingPage extends Page
     private function loadAvailableContacts(): void
     {
         $teacherId = Auth::id();
-        $students = \App\Models\Student::withoutGlobalScopes()->where('teacher_id', $teacherId)->get();
-        
-        $studentGuardians = \App\Models\StudentGuardian::whereIn('student_id', $students->pluck('id'))->get();
-        $guardians = \App\Models\Guardian::whereIn('phone', $studentGuardians->pluck('phone'))->get();
-        
+        $students = Student::withoutGlobalScopes()->where('teacher_id', $teacherId)->get();
+
+        $studentGuardians = StudentGuardian::whereIn('student_id', $students->pluck('id'))->get();
+        $guardians = Guardian::whereIn('phone', $studentGuardians->pluck('phone'))->get();
+
         $contacts = [];
         $existingConvs = $this->getConversations();
 

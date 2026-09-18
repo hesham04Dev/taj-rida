@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Parent;
 
+use App\Models\NotificationRead;
 use App\Models\Student;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -44,7 +45,7 @@ class Dashboard extends Component
             ? Student::withoutGlobalScopes()->find($this->selectedStudentId)
             : null;
 
-        $unreadNotifications = \App\Models\NotificationRead::with('notification.teacher')
+        $unreadNotifications = NotificationRead::with('notification.teacher')
             ->where('guardian_id', Auth::guard('guardian')->id())
             ->whereNull('read_at')
             ->latest()

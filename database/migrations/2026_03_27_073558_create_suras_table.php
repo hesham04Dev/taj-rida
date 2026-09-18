@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->float('pages_count');
-            $table->float("from_page");
-            $table->float("to_page");
+            $table->float('from_page');
+            $table->float('to_page');
             $table->timestamps();
         });
     }

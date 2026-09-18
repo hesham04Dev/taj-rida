@@ -34,6 +34,7 @@
 
 // require __DIR__.'/settings.php';
 
+use App\Http\Controllers\PrintCardsController;
 use App\Http\Controllers\SuraReportController;
 use App\Http\Middleware\AuthenticateGuardian;
 use App\Http\Middleware\AuthenticateStudent;
@@ -54,6 +55,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::get('/sura-print-report', [SuraReportController::class, 'print'])
     ->name('sura.print.report');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/print-cards', PrintCardsController::class)
+        ->name('points-cards.print');
+});
 
 // Student Portal
 Route::prefix('student')->name('student.')->group(function () {

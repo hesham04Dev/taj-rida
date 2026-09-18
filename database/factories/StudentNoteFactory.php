@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Student;
 use App\Models\StudentNote;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,7 +19,7 @@ class StudentNoteFactory extends Factory
     public function definition(): array
     {
         return [
-            'student_id' => \App\Models\Student::factory(),
+            'student_id' => Student::factory(),
             'description' => fake()->paragraph(),
             'rating' => fake()->numberBetween(1, 10),
             'date' => fake()->dateTimeBetween('-60 days', 'now')->format('Y-m-d'),

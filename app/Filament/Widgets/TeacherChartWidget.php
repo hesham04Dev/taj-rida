@@ -2,11 +2,10 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\ChartWidget;
 use App\Models\PageLog;
 use Carbon\Carbon;
+use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
 
 class TeacherChartWidget extends ChartWidget
 {
@@ -42,7 +41,7 @@ class TeacherChartWidget extends ChartWidget
             )
             ->whereDate('date', '>=', $startDate)
             ->when($teacherId, function ($query) use ($teacherId) {
-                $query->whereHas('student', fn($q) => $q->where('teacher_id', $teacherId));
+                $query->whereHas('student', fn ($q) => $q->where('teacher_id', $teacherId));
             })
             ->groupBy('log_date', 'type')
             ->get();
@@ -54,10 +53,10 @@ class TeacherChartWidget extends ChartWidget
         // معالجة البيانات لملء الأيام التي ليس بها إنجاز بصفر
         for ($i = $daysCount - 1; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i)->toDateString();
-            $label = $activeFilter === 'week' 
-                ? Carbon::parse($date)->translatedFormat('l') 
+            $label = $activeFilter === 'week'
+                ? Carbon::parse($date)->translatedFormat('l')
                 : Carbon::parse($date)->format('d/m');
-            
+
             $labels[] = $label;
 
             // استخراج القيمة من المجموعة أو وضع صفر إذا لم توجد

@@ -22,13 +22,14 @@ class UserResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return "مستخدم";
+        return 'مستخدم';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return "المستخدمين";
+        return 'المستخدمين';
     }
+
     public static function form(Schema $schema): Schema
     {
         return UserForm::configure($schema);

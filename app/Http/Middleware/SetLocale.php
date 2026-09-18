@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -14,6 +15,7 @@ class SetLocale
         } elseif (config('app.locale')) {
             App::setLocale(config('app.locale'));
         }
+
         return $next($request);
     }
 }

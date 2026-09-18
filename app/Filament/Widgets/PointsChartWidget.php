@@ -2,9 +2,9 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\ChartWidget;
 use App\Models\PointTransaction;
 use Carbon\Carbon;
+use Filament\Widgets\ChartWidget;
 
 class PointsChartWidget extends ChartWidget
 {
@@ -37,13 +37,13 @@ class PointsChartWidget extends ChartWidget
         for ($i = $daysCount; $i >= 0; $i--) {
             $day = Carbon::today()->subDays($i);
             $labels[] = $activeFilter === 'week' ? $day->translatedFormat('l') : $day->format('d/m');
-            
+
             $qEarned = PointTransaction::whereDate('created_at', $day)->where('amount', '>', 0);
             $qDeducted = PointTransaction::whereDate('created_at', $day)->where('amount', '<', 0);
 
             if ($teacherId) {
-                $qEarned->whereHas('student', fn($q) => $q->where('teacher_id', $teacherId));
-                $qDeducted->whereHas('student', fn($q) => $q->where('teacher_id', $teacherId));
+                $qEarned->whereHas('student', fn ($q) => $q->where('teacher_id', $teacherId));
+                $qDeducted->whereHas('student', fn ($q) => $q->where('teacher_id', $teacherId));
             }
 
             $earned[] = (int) $qEarned->sum('amount');
@@ -58,7 +58,7 @@ class PointsChartWidget extends ChartWidget
                     'borderColor' => '#10B981', // Tailwind Emerald 500
                     'backgroundColor' => 'rgba(16, 185, 129, 0.2)',
                     'fill' => 'start',
-                    'tension' => 0.4
+                    'tension' => 0.4,
                 ],
                 [
                     'label' => 'نقاط مخصومة',
@@ -66,7 +66,7 @@ class PointsChartWidget extends ChartWidget
                     'borderColor' => '#EF4444', // Tailwind Red 500
                     'backgroundColor' => 'rgba(239, 68, 68, 0.2)',
                     'fill' => 'start',
-                    'tension' => 0.4
+                    'tension' => 0.4,
                 ],
             ],
             'labels' => $labels,

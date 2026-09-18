@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Attendance;
 use App\Models\PointTransaction;
 use App\Models\Setting;
+use Carbon\Carbon;
 
 class AttendanceObserver
 {
@@ -12,17 +13,17 @@ class AttendanceObserver
     {
         $this->handlePoints($attendance);
     }
-    
+
     public function updated(Attendance $attendance): void
     {
         if ($attendance->isDirty('is_present')) {
-             // Remove any point transactions generated today for attendance to prevent zero-sum / accumulation bugs
-             \App\Models\PointTransaction::where('student_id', $attendance->student_id)
-                  ->whereIn('reason', ['حضور', 'غياب'])
-                  ->whereDate('created_at', \Carbon\Carbon::today())
-                  ->delete();
+            // Remove any point transactions generated today for attendance to prevent zero-sum / accumulation bugs
+            PointTransaction::where('student_id', $attendance->student_id)
+                ->whereIn('reason', ['حضور', 'غياب'])
+                ->whereDate('created_at', Carbon::today())
+                ->delete();
 
-             $this->handlePoints($attendance);
+            $this->handlePoints($attendance);
         }
     }
 
@@ -35,9 +36,9 @@ class AttendanceObserver
         if ($points !== 0) {
             PointTransaction::create([
                 'student_id' => $attendance->student_id,
-                'teacher_id' => auth()->id() ?? 1, 
+                'teacher_id' => auth()->id() ?? 1,
                 'amount' => $points,
-                'reason' => $attendance->is_present ? 'حضور' : 'غياب'
+                'reason' => $attendance->is_present ? 'حضور' : 'غياب',
             ]);
         }
     }

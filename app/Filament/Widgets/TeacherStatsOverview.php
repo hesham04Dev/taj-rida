@@ -2,11 +2,11 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Filament\Widgets\StatsOverviewWidget\Stat;
 use App\Models\PageLog;
 use App\Models\Student;
 use Carbon\Carbon;
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class TeacherStatsOverview extends BaseWidget
 {
@@ -26,7 +26,7 @@ class TeacherStatsOverview extends BaseWidget
             ->where('type', 'recitation')
             ->whereBetween('date', [$startOfMonth, $endOfMonth])
             ->when($teacherId, function ($query) use ($teacherId) {
-                $query->whereHas('student', fn($q) => $q->where('teacher_id', $teacherId));
+                $query->whereHas('student', fn ($q) => $q->where('teacher_id', $teacherId));
             })
             ->sum('count'); // نستخدم sum لجمع الصفحات وليس count
 
@@ -35,13 +35,13 @@ class TeacherStatsOverview extends BaseWidget
             ->where('type', 'revision')
             ->whereBetween('date', [$startOfMonth, $endOfMonth])
             ->when($teacherId, function ($query) use ($teacherId) {
-                $query->whereHas('student', fn($q) => $q->where('teacher_id', $teacherId));
+                $query->whereHas('student', fn ($q) => $q->where('teacher_id', $teacherId));
             })
             ->sum('count');
 
         // 3. عدد الطلاب الإجمالي المرتبطين بهذا الأستاذ أو الكل للمدير
         $totalStudents = Student::query()
-            ->when($teacherId, fn($q) => $q->where('teacher_id', $teacherId))
+            ->when($teacherId, fn ($q) => $q->where('teacher_id', $teacherId))
             ->count();
 
         return [
@@ -57,7 +57,7 @@ class TeacherStatsOverview extends BaseWidget
                 ->color('info'),
 
             Stat::make('عدد الطلاب', $totalStudents)
-                ->description("إجمالي الطلاب المسجلين")
+                ->description('إجمالي الطلاب المسجلين')
                 ->descriptionIcon('heroicon-m-users')
                 ->color('warning'),
         ];

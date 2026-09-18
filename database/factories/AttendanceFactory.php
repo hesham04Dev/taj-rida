@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Attendance;
+use App\Models\Student;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +19,7 @@ class AttendanceFactory extends Factory
     public function definition(): array
     {
         return [
-            'student_id' => \App\Models\Student::factory(),
+            'student_id' => Student::factory(),
             'date' => fake()->dateTimeBetween('-30 days', 'now')->format('Y-m-d'),
             'is_present' => fake()->boolean(80),
         ];

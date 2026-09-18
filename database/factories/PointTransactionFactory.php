@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\PointTransaction;
+use App\Models\Student;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,8 +20,8 @@ class PointTransactionFactory extends Factory
     public function definition(): array
     {
         return [
-            'student_id' => \App\Models\Student::factory(),
-            'teacher_id' => \App\Models\User::factory(),
+            'student_id' => Student::factory(),
+            'teacher_id' => User::factory(),
             'amount' => fake()->numberBetween(5, 100),
             'reason' => fake()->sentence(),
         ];

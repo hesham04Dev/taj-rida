@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Memorization;
+use App\Models\Student;
+use App\Models\Sura;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,8 +20,8 @@ class MemorizationFactory extends Factory
     public function definition(): array
     {
         return [
-            'student_id' => \App\Models\Student::factory(),
-            'sura_id' => \App\Models\Sura::factory(),
+            'student_id' => Student::factory(),
+            'sura_id' => Sura::factory(),
             'memorized_pages' => fake()->randomFloat(1, 0, 20),
             'memorization_degree' => null,
             'memorization_repetition' => fake()->numberBetween(0, 5),

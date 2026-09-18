@@ -34,3 +34,12 @@ x make it production ready
 
 [ ]return the relation of the page log to show the page log
 [ ] preferd add a real links between the memorization so if edited the amount of points should re edited or idk
+
+
+[x] add budget to the system
+[ ] add the points card to the system
+
+[ ] add gifts calc to the system (need more working)
+[ ] add whatsapp api or something for message automation
+[ ] add knowledge base to the system and fill it 
+[ ] what we should do when the dawra ends???!!!

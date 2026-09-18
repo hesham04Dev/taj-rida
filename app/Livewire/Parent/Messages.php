@@ -7,7 +7,6 @@ use App\Models\Guardian;
 use App\Models\Message;
 use App\Models\Student;
 use App\Models\StudentGuardian;
-use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;

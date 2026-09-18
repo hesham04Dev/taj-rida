@@ -131,7 +131,7 @@ class StudentsTable
                             ['reason' => 'مشاركة', 'amount' => 15, 'type' => 'addition'],
                             ['reason' => 'التزام', 'amount' => 20, 'type' => 'addition'],
                             ['reason' => 'خصم سلوك', 'amount' => 10, 'type' => 'deduction'],
-                           
+
                         ];
 
                         $reasonOptions = [];
