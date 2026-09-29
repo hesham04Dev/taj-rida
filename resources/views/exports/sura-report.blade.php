@@ -143,9 +143,9 @@
                                         @foreach($group['memorization'] as $sura)
                                             <div class="bg-orange-900/5 border border-orange-200/50 px-4 py-1 rounded-md">
                                                 <span class="text-lg font-bold text-vintage-ink">{{ $sura['name'] }}</span>
-                                                @if(isset($sura['need_from_page']))
+                                                @if(isset($sura['children']) && !empty($sura['children']))
                                                     <div class="text-[11px] text-orange-800 font-bold">
-                                                        من ص {{ $sura['need_from_page'] }} إلى {{ $sura['need_to_page'] }}
+                                                        ({{ implode('، ', $sura['children']) }})
                                                     </div>
                                                 @endif
                                             </div>
@@ -166,9 +166,9 @@
                                         @foreach($group['revision'] as $sura)
                                             <div class="bg-vintage-gold/5 border border-vintage-gold/20 px-4 py-1 rounded-md">
                                                 <span class="text-lg font-bold text-vintage-ink">{{ $sura['name'] }}</span>
-                                                @if(isset($sura['need_from_page']))
+                                                @if(isset($sura['children']) && !empty($sura['children']))
                                                     <div class="text-[11px] text-vintage-gold font-bold">
-                                                        من ص {{ $sura['need_from_page'] }} إلى {{ $sura['need_to_page'] }}
+                                                        ({{ implode('، ', $sura['children']) }})
                                                     </div>
                                                 @endif
                                             </div>

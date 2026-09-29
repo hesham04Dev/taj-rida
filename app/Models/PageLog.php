@@ -16,6 +16,7 @@ class PageLog extends Model
     {
         return [
             'date' => 'date',
+            'children' => 'array',
         ];
     }
 

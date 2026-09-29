@@ -29,9 +29,9 @@
                     <div wire:key="task-{{ $task->id }}" class="flex items-start gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50">
                         <div class="flex-1 min-w-0">
                             <p class="font-semibold text-zinc-900 dark:text-white text-sm">{{ $task->sura->name }}</p>
-                            @if($task->need_from_page && $task->need_to_page)
+                            @if(($task->needs_rememorisation_children && count($task->needs_rememorisation_children) > 0) || ($task->needs_revision_children && count($task->needs_revision_children) > 0))
                                 <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                                    الصفحات {{ $task->need_from_page }} — {{ $task->need_to_page }}
+                                    ({{ implode('، ', array_merge($task->needs_rememorisation_children ?? [], $task->needs_revision_children ?? [])) }})
                                 </p>
                             @endif
                         </div>

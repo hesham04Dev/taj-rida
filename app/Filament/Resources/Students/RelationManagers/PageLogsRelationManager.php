@@ -36,14 +36,19 @@ class PageLogsRelationManager extends RelationManager
                         'test' => 'اختبار',
                     ])
                     ->required(),
-                Forms\Components\TextInput::make('from_page')
-                    ->label('من صفحة/سورة')
-                    ->numeric()
+                Forms\Components\Select::make('grade')
+                    ->label('التقييم')
+                    ->options([
+                        'ممتاز' => 'ممتاز',
+                        'جيد جدا' => 'جيد جدا',
+                        'جيد' => 'جيد',
+                        'مقبول' => 'مقبول',
+                        'ضعيف' => 'ضعيف',
+                    ])
                     ->nullable(),
-                Forms\Components\TextInput::make('to_page')
-                    ->label('إلى صفحة/سورة')
-                    ->numeric()
-                    ->nullable(),
+                Forms\Components\TagsInput::make('children')
+                    ->label('الصفحات/السور')
+                    ->placeholder('أضف صفحة/سورة'),
                 Forms\Components\TextInput::make('count')
                     ->label('عدد الصفحات/السور')
                     ->numeric()
@@ -76,6 +81,11 @@ class PageLogsRelationManager extends RelationManager
                         'test' => 'warning',
                         default => 'gray',
                     }),
+                Tables\Columns\TextColumn::make('grade')->label('التقييم'),
+                Tables\Columns\TextColumn::make('children')
+                    ->label('الصفحات/السور')
+                    ->formatStateUsing(fn ($state) => is_array($state) ? implode('، ', $state) : $state)
+                    ->wrap(),
                 Tables\Columns\TextColumn::make('count')->label('العدد'),
                 Tables\Columns\TextColumn::make('date')->label('التاريخ')->date(),
             ])

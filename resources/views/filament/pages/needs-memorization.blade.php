@@ -182,15 +182,8 @@
         }
 
         @keyframes pulse-dot {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.4;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
 
         /* Empty state */
@@ -207,8 +200,56 @@
             margin: 16px 0 8px;
         }
 
-        .empty-state-sub {
-            font-size: 14px;
+
+
+        .chip-delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 0 0 4px;
+            display: inline-flex;
+            align-items: center;
+            opacity: 0.55;
+            transition: opacity 0.15s;
+            color: inherit;
+            line-height: 1;
+        }
+
+        .chip-delete-btn:hover {
+            opacity: 1;
+        }
+
+        .chip-delete-btn svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .add-revision-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            border: 1.5px dashed #8b5cf6;
+            background: transparent;
+            color: #6d28d9;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .add-revision-btn:hover {
+            background: #f5f3ff;
+        }
+
+        .dark .add-revision-btn {
+            border-color: rgba(139, 92, 246, 0.5);
+            color: #a78bfa;
+        }
+
+        .dark .add-revision-btn:hover {
+            background: rgba(139, 92, 246, 0.1);
         }
     </style>
 
@@ -246,9 +287,10 @@
                                     <div class="chip chip-orange">
                                         <span class="chip-dot dot-orange"></span>
                                         {{ $sura['name'] }}
-                                        @if(isset($sura['need_from_page']) && isset($sura['need_to_page']))
-                                            <span class="chip-pages">ص {{ $sura['need_from_page'] }} ← {{ $sura['need_to_page'] }}</span>
+                                        @if(isset($sura['children']) && !empty($sura['children']))
+                                            <span class="chip-pages">({{ implode('، ', $sura['children']) }})</span>
                                         @endif
+                                        {{ ($this->removeMemorizationAction)(['id' => $sura['id']]) }}
                                     </div>
                                 @endforeach
                             </div>
@@ -256,30 +298,38 @@
                     @endif
 
                     {{-- Revision Row --}}
-                    @if(count($group['revision']) > 0)
-                        <div class="needs-section">
-                            <span class="section-label label-purple">مراجعة</span>
-                            <div class="chips-wrap">
-                                @foreach($group['revision'] as $sura)
-                                    <div class="chip chip-purple">
-                                        <span class="chip-dot dot-purple"></span>
-                                        {{ $sura['name'] }}
-                                        @if(isset($sura['need_from_page']) && isset($sura['need_to_page']))
-                                            <span class="chip-pages">ص {{ $sura['need_from_page'] }} ← {{ $sura['need_to_page'] }}</span>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
+                    <div class="needs-section">
+                        <span class="section-label label-purple">مراجعة</span>
+                        <div class="chips-wrap">
+                            @foreach($group['revision'] as $sura)
+                                <div class="chip chip-purple">
+                                    <span class="chip-dot dot-purple"></span>
+                                    {{ $sura['name'] }}
+                                    @if(isset($sura['children']) && !empty($sura['children']))
+                                        <span class="chip-pages">({{ implode('، ', $sura['children']) }})</span>
+                                    @endif
+                                    {{ ($this->removeRevisionAction)(['id' => $sura['id']]) }}
+                                </div>
+                            @endforeach
+
+                            {{-- Add revision button --}}
+                {{ ($this->addRevisionAction)([]) }}
                         </div>
-                    @endif
+                    </div>
 
                 </div>
             @endforeach
         @endif
 
+        {{-- Global Add Revision when list is empty --}}
+        @if(count($this->groupedNeeds) === 0)
+            <div style="text-align:center; margin-top: 16px;">
+                {{ ($this->addRevisionAction)([]) }}
+            </div>
+        @endif
+
     </div>
 
-
-
+    <x-filament-actions::modals />
 
 </x-filament-panels::page>

@@ -38,21 +38,18 @@ class Curriculum extends Model
     }
 
     /**
-     * Returns the average points_multiplier for a given list of child labels.
+     * Returns the total pages_equivalent for a given list of child labels.
      *
      * @param  array<string>  $selectedLabels
      */
-    public function averageMultiplierForLabels(array $selectedLabels): float
+    public function totalPagesEquivalentForLabels(array $selectedLabels): float
     {
         if (empty($selectedLabels)) {
-            return 1.0;
+            return 0.0;
         }
 
-        $multipliers = collect($this->children)
+        return collect($this->children)
             ->whereIn('label', $selectedLabels)
-            ->pluck('points_multiplier')
-            ->map(fn ($v) => (float) $v);
-
-        return $multipliers->isNotEmpty() ? $multipliers->avg() : 1.0;
+            ->sum('pages_equivalent');
     }
 }
