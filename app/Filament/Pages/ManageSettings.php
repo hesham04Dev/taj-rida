@@ -75,17 +75,25 @@ class ManageSettings extends Page implements HasForms
                 Tabs::make('Settings')
                     ->tabs([
                         Tab::make('points_settings')
-                            ->label('نقاط الحلقات')
+                            ->label('نقاط الحلقات وأسعار الصرف')
                             ->icon('heroicon-o-star')
                             ->schema([
                                 TextInput::make('memorization_points_per_page')
-                                    ->label('نقاط التسميع لكل صفحة')
+                                    ->label('نقاط التسميع العادي لكل صفحة')
                                     ->numeric()
+                                    ->minValue(0.1)
                                     ->required()
                                     ->default(10),
+                                TextInput::make('points_per_page_serd')
+                                    ->label('نقاط السرد لكل صفحة')
+                                    ->numeric()
+                                    ->minValue(0.1)
+                                    ->required()
+                                    ->default(5),
                                 TextInput::make('revision_points_per_page')
                                     ->label('نقاط المراجعة لكل صفحة')
                                     ->numeric()
+                                    ->minValue(0.1)
                                     ->required()
                                     ->default(5),
                                 TextInput::make('attendance_points')
@@ -98,6 +106,19 @@ class ManageSettings extends Page implements HasForms
                                     ->numeric()
                                     ->required()
                                     ->default(-5),
+                                TextInput::make('gifts_balance')
+                                    ->label('رصيد الهدايا المخصص')
+                                    ->helperText('المبلغ المالي المخصص لرصيد الهدايا (0 للاعتماد على حركات الميزانية)')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0),
+                                TextInput::make('expected_exchange_rate')
+                                    ->label('سعر الصرف المتوقع (نقاط إلى نقود)')
+                                    ->helperText('القيمة النقدية المقابلة للنقطة الواحدة (قيمة رقمية موجبة)')
+                                    ->numeric()
+                                    ->minValue(0.0001)
+                                    ->required()
+                                    ->default(0.1),
                             ])->columns(2),
 
                         Tab::make('grading_settings')

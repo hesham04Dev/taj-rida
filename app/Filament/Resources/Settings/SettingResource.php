@@ -58,6 +58,6 @@ class SettingResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return false;
+        return auth()->user()->role === 'admin';
     }
 }

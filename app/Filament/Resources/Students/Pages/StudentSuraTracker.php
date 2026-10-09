@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Students\Pages;
 
+use App\Enums\MemorizationType;
 use App\Filament\Resources\Students\StudentResource;
 use App\Models\Curriculum;
 use App\Models\Memorization;
@@ -314,6 +315,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                     ->label('النوع')
                     ->options([
                         'memorization' => 'تسميع جديد (حفظ)',
+                        'serd' => 'سرد',
                         'revision' => 'مراجعة',
                         'test' => 'اختبار',
                     ])
@@ -342,13 +344,13 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                             ->orderBy('date', 'desc')
                             ->orderBy('id', 'desc')
                             ->get();
-                            // dd($pageLogs);
+                        // dd($pageLogs);
                         $options = [];
                         foreach ($juz->children as $child) {
                             $latestLog = null;
                             foreach ($pageLogs as $log) {
                                 if (in_array($child['label'], $log->children ?? [])) {
-                                    
+
                                     $latestLog = $log;
                                     break;
                                 }
@@ -381,14 +383,14 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                                 $options[$child['label']] = new HtmlString('
     <div class="flex items-center gap-2">
         
-        <span class="dot" style=" display:inline-block;background-color: ' . e($colorClass) . ';"></span>
-        <span>' . e($child['label']) . '</span>
+        <span class="dot" style=" display:inline-block;background-color: '.e($colorClass).';"></span>
+        <span>'.e($child['label']).'</span>
     </div>
 ');
 
                                 //  $options[$child['label']] = '<div>'.$child['label'].$colorClass.'</div>';
                             } else {
-                                $options[$child['label']] = $child['label'] . "dd";
+                                $options[$child['label']] = $child['label'].'dd';
                             }
                         }
 
@@ -451,7 +453,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
 
                 $isNeedRememorisation = $data['is_need_rememorisation'] ?? false;
                 $isNeedRevision = $data['is_need_revision'] ?? false;
-                
+
                 // Build page info from selected children
                 $selectedLabels = $data['selected_children'] ?? [];
                 [$selectedCount, $totalPagesEquivalent, $selectedLabels] = $this->resolvePageInfo($juz, $selectedLabels);
@@ -489,14 +491,15 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                 // Clear needs flags
                 // (no longer needed to clear need_from_page / need_to_page)
 
-                if ($data['type'] === 'memorization') {
+                if (in_array($data['type'], ['memorization', 'serd'])) {
+                    $memorization->type = $data['type'] === 'serd' ? MemorizationType::Serd : MemorizationType::Regular;
                     $rememorizeChildren = $memorization->needs_rememorisation_children ?? [];
                     $rememorizeChildren = array_diff($rememorizeChildren, $selectedLabels);
                     $memorization->needs_rememorisation_children = array_values($rememorizeChildren);
                     if (empty($rememorizeChildren)) {
                         $memorization->is_need_rememorisation = false;
                     }
-                    
+
                     $memorization->memorization_degree = $data['grade'];
                     $memorization->memorized_pages = ($memorization->memorized_pages ?? 0) + $selectedCount;
                     if ($memorization->memorized_pages >= count($juz->children ?? [])) {
@@ -509,7 +512,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                     if (empty($revisionChildren)) {
                         $memorization->is_need_revision = false;
                     }
-                    
+
                     $memorization->revision_degree = $data['grade'];
                     if ($selectedCount >= count($juz->children ?? [])) {
                         $memorization->revision_repetition = ($memorization->revision_repetition ?? 0) + 1;
@@ -578,6 +581,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                         ->label('النوع')
                         ->options([
                             'memorization' => 'تسميع جديد (حفظ)',
+                            'serd' => 'سرد',
                             'revision' => 'مراجعة',
                             'test' => 'اختبار',
                         ])
@@ -655,7 +659,8 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
 
                         $memorization->memorized_pages = $childrenCount;
 
-                        if ($data['type'] === 'memorization') {
+                        if (in_array($data['type'], ['memorization', 'serd'])) {
+                            $memorization->type = $data['type'] === 'serd' ? MemorizationType::Serd : MemorizationType::Regular;
                             $memorization->needs_rememorisation_children = [];
                             $memorization->is_need_rememorisation = false;
                             $memorization->memorization_degree = $data['grade'];
@@ -726,11 +731,20 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
     protected function setPointTransation(Memorization $memorization, array $data, ?PageLog $pageLog = null): void
     {
         $isNoPoints = $data['is_no_points'] ?? false;
+        $isSerd = ($data['type'] === 'serd' || $memorization->type === MemorizationType::Serd);
 
-        $type = $data['type'] === 'memorization' ? 'recitation' : $data['type'];
-        $settingKey = $type.'_points_per_page';
-        $setting = Setting::where('key', $settingKey)->first();
-        $pointsPerPage = $setting ? (int) $setting->value : 0;
+        if ($isSerd) {
+            $setting = Setting::where('key', 'points_per_page_serd')->first();
+            $pointsPerPage = $setting ? (float) $setting->value : 5.0;
+        } else {
+            $type = $data['type'] === 'memorization' ? 'recitation' : $data['type'];
+            $settingKey = $type.'_points_per_page';
+            $setting = Setting::where('key', $settingKey)->first();
+            if (! $setting && $type === 'recitation') {
+                $setting = Setting::where('key', 'points_per_page_regular')->first();
+            }
+            $pointsPerPage = $setting ? (float) $setting->value : 0;
+        }
 
         $grade = $data['grade'] ?? 'ممتاز';
         $gradeSettingKey = match ($grade) {
@@ -754,7 +768,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
         // Repetition check
         $isRepetition = false;
         $repetitionPercent = 100;
-        if ($data['type'] === 'memorization' && (($memorization->memorization_repetition ?? 0) > 1)) {
+        if (in_array($data['type'], ['memorization', 'serd']) && (($memorization->memorization_repetition ?? 0) > 1)) {
             $isRepetition = true;
             $rePercentSetting = Setting::where('key', 're_recitation_percent')->first();
             $repetitionPercent = $rePercentSetting ? (int) $rePercentSetting->value : 50;
@@ -774,10 +788,17 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
         $totalPoints = 0;
 
         $juz = $memorization->curriculum;
-        $reason = __($data['type']).' '.$juz->name;
+        $typeLabel = match ($data['type']) {
+            'serd' => 'سرد',
+            'memorization' => 'تسميع',
+            'revision' => 'مراجعة',
+            'test' => 'اختبار',
+            default => __($data['type']),
+        };
+        $reason = $typeLabel.' '.$juz->name;
 
         $children = $data['children'] ?? [];
-        if (!empty($children)) {
+        if (! empty($children)) {
             $juzChildrenCount = count($juz->children ?? []);
             if (count($children) < $juzChildrenCount) {
                 $reason .= ' ('.implode('، ', $children).')';
@@ -814,7 +835,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
         $pageLog = new PageLog([
             'student_id' => $memorization->student_id,
             'curriculum_id' => $memorization->curriculum_id,
-            'type' => $data['type'] === 'memorization' ? 'recitation' : $data['type'],
+            'type' => in_array($data['type'], ['memorization', 'serd']) ? 'recitation' : $data['type'],
             'grade' => $data['grade'] ?? null,
             'children' => $data['children'] ?? [],
             'count' => $data['selected_count'] ?? count($data['children'] ?? []),

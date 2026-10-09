@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Concerns\BelongsToCurrentDawara;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PointTransaction extends Model
 {
-    use HasFactory;
+    use BelongsToCurrentDawara, HasFactory;
 
     protected $guarded = [];
 
@@ -30,5 +31,10 @@ class PointTransaction extends Model
     public function pageLog(): BelongsTo
     {
         return $this->belongsTo(PageLog::class);
+    }
+
+    public function dawara(): BelongsTo
+    {
+        return $this->belongsTo(Dawara::class);
     }
 }

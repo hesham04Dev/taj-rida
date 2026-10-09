@@ -8,6 +8,7 @@ use App\Filament\Resources\BudgetTransactions\Pages\ListBudgetTransactions;
 use App\Filament\Resources\BudgetTransactions\Schemas\BudgetTransactionForm;
 use App\Filament\Resources\BudgetTransactions\Tables\BudgetTransactionsTable;
 use App\Filament\Resources\BudgetTransactions\Widgets\BudgetStats;
+use App\Filament\Widgets\GiftsAndExchangeRatesWidget;
 use App\Models\BudgetTransaction;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -66,6 +67,7 @@ class BudgetTransactionResource extends Resource
     {
         return [
             BudgetStats::class,
+            GiftsAndExchangeRatesWidget::class,
         ];
     }
 

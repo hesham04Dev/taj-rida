@@ -23,7 +23,7 @@ class BudgetStats extends StatsOverviewWidget
                 ->color($currentBalance >= 0 ? 'success' : 'danger'),
             Stat::make('إجمالي التبرعات', number_format($totalGifts, 2))
                 ->color('success'),
-            Stat::make('الديون الحالية (قرض حسن)', number_format($currentDebt, 2))
+            Stat::make('الديون الحالية', number_format($currentDebt, 2))
                 ->color('danger'),
             Stat::make('إجمالي المصروفات', number_format($totalExpenses, 2))
                 ->color('warning'),

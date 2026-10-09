@@ -18,7 +18,7 @@ class BudgetTransactionForm
                 ToggleButtons::make('type')
                     ->label('نوع الحركة')
                     ->options([
-                        'credit' => 'سلف (قرض حسن)',
+                        'credit' => 'سلف',
                         'return' => 'سداد سلف',
                         'gift' => 'تبرع (صدقة)',
                         'expense' => 'مصروفات',

@@ -3,6 +3,7 @@
 namespace App\Livewire\Student;
 
 use App\Models\PointTransaction;
+use App\Models\Setting;
 use App\Models\Student;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,10 @@ class PointsCard extends Component
 
     public int $givenPoints = 0;
 
+    public float $expectedRate = 0.0;
+
+    public float $expectedMoney = 0.0;
+
     public function mount(): void
     {
         /** @var Student $student */
@@ -24,6 +29,10 @@ class PointsCard extends Component
         $this->totalPoints = (int) PointTransaction::where('student_id', $student->id)->sum('amount');
         $this->givenPoints = (int) $student->given_points;
         $this->remainingPoints = max(0, $this->totalPoints - $this->givenPoints);
+
+        $expectedRateSetting = Setting::where('key', 'expected_exchange_rate')->first();
+        $this->expectedRate = $expectedRateSetting ? (float) $expectedRateSetting->value : 0.0;
+        $this->expectedMoney = $this->totalPoints * $this->expectedRate;
     }
 
     public function render(): View

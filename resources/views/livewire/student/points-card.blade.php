@@ -24,6 +24,11 @@
             <div class="text-center my-6">
                 <span class="text-6xl font-bold text-zinc-900 dark:text-white tabular-nums">{{ number_format($totalPoints) }}</span>
                 <p class="text-zinc-500 dark:text-zinc-400 text-sm mt-2">نقطة مكتسبة</p>
+                @if($expectedRate > 0)
+                    <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium">
+                        القيمة التقديرية: {{ number_format($expectedMoney, 2) }}
+                    </p>
+                @endif
             </div>
 
             {{-- Stats row --}}

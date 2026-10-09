@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Students\RelationManagers;
 
+use App\Enums\MemorizationType;
 use App\Models\Curriculum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -43,6 +44,12 @@ class MemorizationsRelationManager extends RelationManager
                     )
                     ->required()
                     ->searchable(),
+
+                Select::make('type')
+                    ->label('نوع التسميع')
+                    ->options(MemorizationType::options())
+                    ->default(MemorizationType::Regular->value)
+                    ->required(),
 
                 Grid::make(3)->schema([
                     TextInput::make('memorized_pages')
@@ -124,6 +131,26 @@ class MemorizationsRelationManager extends RelationManager
                                 ->size('lg')
                                 ->icon('heroicon-m-book-open'),
 
+                            TextColumn::make('type')
+                                ->badge()
+                                ->formatStateUsing(fn ($state) => $state instanceof MemorizationType ? $state->label() : $state)
+                                ->color(fn ($state) => $state === MemorizationType::Serd ? 'info' : 'success')
+                                ->size('sm'),
+
+                            TextColumn::make('points_earned')
+                                ->label('النقاط')
+                                ->getStateUsing(fn ($record) => $record->isInCurrentDawara() ? ($record->points_earned ? "{$record->points_earned} نقطة" : '0 نقطة') : null)
+                                ->badge()
+                                ->color('primary')
+                                ->size('xs')
+                                ->visible(fn ($record) => $record->isInCurrentDawara()),
+
+                            TextColumn::make('dawara.name')
+                                ->label('الدورة')
+                                ->color('gray')
+                                ->size('xs')
+                                ->visible(fn ($record) => ! $record->isInCurrentDawara()),
+
                             TextColumn::make('memorized_count')
                                 ->getStateUsing(fn ($record) => $record->memorized_pages
                                     ? "محفوظ {$record->memorized_pages} عنصر"
@@ -182,7 +209,7 @@ class MemorizationsRelationManager extends RelationManager
                                     ->icon('heroicon-m-arrow-path-rounded-square'),
                             ])->space(1),
                         ]),
-                    ]),
+                    ])->visible(fn ($record) => $record->isInCurrentDawara()),
 
                     Panel::make([
                         Split::make([
