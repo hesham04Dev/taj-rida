@@ -142,14 +142,15 @@ class MemorizationsRelationManager extends RelationManager
                                 ->getStateUsing(fn ($record) => $record->isInCurrentDawara() ? ($record->points_earned ? "{$record->points_earned} نقطة" : '0 نقطة') : null)
                                 ->badge()
                                 ->color('primary')
-                                ->size('xs')
-                                ->visible(fn ($record) => $record->isInCurrentDawara()),
+                                ->size('xs'),
+
+                                // ->visible(fn ($record) => $record->isInCurrentDawara()),
 
                             TextColumn::make('dawara.name')
                                 ->label('الدورة')
                                 ->color('gray')
-                                ->size('xs')
-                                ->visible(fn ($record) => ! $record->isInCurrentDawara()),
+                                ->size('xs'),
+                                // ->visible(fn ($record) => ! $record->isInCurrentDawara()),
 
                             TextColumn::make('memorized_count')
                                 ->getStateUsing(fn ($record) => $record->memorized_pages
@@ -209,7 +210,8 @@ class MemorizationsRelationManager extends RelationManager
                                     ->icon('heroicon-m-arrow-path-rounded-square'),
                             ])->space(1),
                         ]),
-                    ])->visible(fn ($record) => $record->isInCurrentDawara()),
+                    ]),
+                    // ->visible(fn ($record) => $record->isInCurrentDawara()),
 
                     Panel::make([
                         Split::make([

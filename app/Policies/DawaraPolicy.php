@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Models\Creditor;
 use App\Models\User;
 
 class DawaraPolicy
@@ -18,7 +17,7 @@ class DawaraPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Creditor $creditor): bool
+    public function view(User $user, ): bool
     {
         return $user->role === 'admin';
     }
@@ -34,7 +33,7 @@ class DawaraPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Creditor $creditor): bool
+    public function update(User $user, ): bool
     {
         return $user->role === 'admin';
     }
@@ -42,7 +41,7 @@ class DawaraPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Creditor $creditor): bool
+    public function delete(User $user, ): bool
     {
         return $user->role === 'admin';
     }
@@ -50,7 +49,7 @@ class DawaraPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Creditor $creditor): bool
+    public function restore(User $user, ): bool
     {
         return $user->role === 'admin';
     }
@@ -58,7 +57,7 @@ class DawaraPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Creditor $creditor): bool
+    public function forceDelete(User $user, ): bool
     {
         return $user->role === 'admin';
     }

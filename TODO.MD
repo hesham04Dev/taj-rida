@@ -14,6 +14,7 @@ x make it production ready
 
 [ ] in sura traker i want multi select so if a student memorize multi suras i can enter at once (note the ayas is all suras ayas no from to in this step)
 
+[ ] fix mark other absence stop working after multi classes
 
 [x] i want to show the percent of the sura if the student does not memorize it all
 
