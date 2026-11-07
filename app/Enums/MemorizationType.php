@@ -24,7 +24,7 @@ enum MemorizationType: string
     public function pointsSettingKey(): string
     {
         return match ($this) {
-            self::Regular => 'points_per_page_regular',
+            self::Regular => 'points_per_page_memorization',
             self::Serd => 'points_per_page_serd',
         };
     }

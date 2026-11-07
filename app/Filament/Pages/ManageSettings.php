@@ -78,24 +78,30 @@ class ManageSettings extends Page implements HasForms
                             ->label('نقاط الحلقات وأسعار الصرف')
                             ->icon('heroicon-o-star')
                             ->schema([
-                                TextInput::make('memorization_points_per_page')
+                                TextInput::make('points_per_page_memorization')
                                     ->label('نقاط التسميع العادي لكل صفحة')
                                     ->numeric()
                                     ->minValue(0.1)
                                     ->required()
-                                    ->default(10),
+                                    ->default(20),
                                 TextInput::make('points_per_page_serd')
                                     ->label('نقاط السرد لكل صفحة')
                                     ->numeric()
                                     ->minValue(0.1)
                                     ->required()
                                     ->default(5),
-                                TextInput::make('revision_points_per_page')
+                                TextInput::make('points_per_page_revision')
                                     ->label('نقاط المراجعة لكل صفحة')
                                     ->numeric()
                                     ->minValue(0.1)
                                     ->required()
-                                    ->default(5),
+                                    ->default(10),
+                                TextInput::make('points_per_page_test')
+                                    ->label('نقاط الاختبار لكل صفحة')
+                                    ->numeric()
+                                    ->minValue(0.1)
+                                    ->required()
+                                    ->default(2.5),
                                 TextInput::make('attendance_points')
                                     ->label('نقاط الحضور اليومي')
                                     ->numeric()
@@ -161,7 +167,7 @@ class ManageSettings extends Page implements HasForms
                             ->label('نسب التكرار (إعادة التسميع والمراجعة)')
                             ->icon('heroicon-o-arrow-path')
                             ->schema([
-                                TextInput::make('re_recitation_percent')
+                                TextInput::make('re_memorization_percent')
                                     ->label('نسبة النقاط لإعادة التسميع (التكرار)')
                                     ->numeric()
                                     ->required()

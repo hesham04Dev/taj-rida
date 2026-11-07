@@ -15,15 +15,15 @@
 
     Attendance: (id, student_id, date, status).
 
-    Recitation/Revision: (id, student_id, date, sura_id,from,to, grade [default: Good]). note the to should be less or equal to the sura last aya
+    Memorization/Revision: (id, student_id, date, sura_id,from,to, grade [default: Good]). note the to should be less or equal to the sura last aya
 
     sura (id, name , ayas_count)
 
-    Recitation_pages/Revision_pages: (id, student_id, date, count,). note the count is float with one decimal point eg:3.5
+    Memorization_pages/Revision_pages: (id, student_id, date, count,). note the count is float with one decimal point eg:3.5
 
     PointTransaction: (id, student_id, amount, reason, timestamp). السجل الرقمي.
 
-    Settings: (id, key, value). should have by default recition_points_per_page , revision_points_per_page , attendance_points, absence_points
+    Settings: (id, key, value). should have by default recition_points_per_page , points_per_page_revision , attendance_points, absence_points
 
 4. خريطة الصفحات والتفاعل (UI/UX Flow)
 أ. الصفحة الرئيسية (اللوحة التفاعلية)
@@ -59,5 +59,5 @@
 
     حساب النقاط:
 
-        عند زيادة صفحة تسميع: Points = Settings.recitation_base * Student.multiplier.
+        عند زيادة صفحة تسميع: Points = Settings.memorization_base * Student.multiplier.
      او المراجعة ايضا

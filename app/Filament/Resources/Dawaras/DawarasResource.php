@@ -20,10 +20,11 @@ class DawarasResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
-      public static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): ?string
     {
         return 'إعدادات';
     }
+
     public static function getModelLabel(): string
     {
         return 'دورة';
@@ -49,7 +50,7 @@ class DawarasResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ClassroomsRelationManager::class,
         ];
     }
 

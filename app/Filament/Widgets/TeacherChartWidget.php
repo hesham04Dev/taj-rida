@@ -26,27 +26,27 @@ class TeacherChartWidget extends ChartWidget
 
     protected function getData(): array
     {
-        $teacherId = auth()->user()->role !== 'admin' ? auth()->id() : null;
+        $isTeacher = auth()->user()?->role !== 'admin';
         $activeFilter = $this->filter ?? 'week';
         $daysCount = $activeFilter === 'week' ? 7 : 30;
 
         $startDate = Carbon::today()->subDays($daysCount - 1);
 
-        // جلب كافة البيانات في استعلام واحد مجمع للأداء العالي
+        // جلب كافة البيانات في استعلام واحد مجمع للأداء العالي مع حساب الصفحات الموزونة
         $logs = PageLog::query()
             ->select(
                 DB::raw('DATE(date) as log_date'),
                 'type',
-                DB::raw('SUM(count) as total_pages')
+                DB::raw('SUM(COALESCE(weighted_pages, `count`)) as total_pages')
             )
             ->whereDate('date', '>=', $startDate)
-            ->when($teacherId, function ($query) use ($teacherId) {
-                $query->whereHas('student', fn ($q) => $q->where('teacher_id', $teacherId));
+            ->when($isTeacher, function ($query) {
+                $query->whereHas('student');
             })
             ->groupBy('log_date', 'type')
             ->get();
 
-        $recitations = [];
+        $memorizations = [];
         $revisions = [];
         $labels = [];
 
@@ -60,7 +60,7 @@ class TeacherChartWidget extends ChartWidget
             $labels[] = $label;
 
             // استخراج القيمة من المجموعة أو وضع صفر إذا لم توجد
-            $recitations[] = (float) $logs->where('log_date', $date)->where('type', 'recitation')->first()?->total_pages ?? 0;
+            $memorizations[] = (float) $logs->where('log_date', $date)->where('type', 'memorization')->first()?->total_pages ?? 0;
             $revisions[] = (float) $logs->where('log_date', $date)->where('type', 'revision')->first()?->total_pages ?? 0;
         }
 
@@ -68,7 +68,7 @@ class TeacherChartWidget extends ChartWidget
             'datasets' => [
                 [
                     'label' => 'إجمالي صفحات التسميع',
-                    'data' => $recitations,
+                    'data' => $memorizations,
                     'borderColor' => '#36A2EB',
                     'backgroundColor' => 'rgba(54, 162, 235, 0.2)',
                     'fill' => 'start',

@@ -340,7 +340,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
 
                         $pageLogs = PageLog::where('student_id', $this->record->id)
                             ->where('curriculum_id', $curriculumId)
-                            ->whereIn('type', ['recitation', 'revision'])
+                            ->whereIn('type', ['memorization', 'revision'])
                             ->orderBy('date', 'desc')
                             ->orderBy('id', 'desc')
                             ->get();
@@ -390,7 +390,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
 
                                 //  $options[$child['label']] = '<div>'.$child['label'].$colorClass.'</div>';
                             } else {
-                                $options[$child['label']] = $child['label'].'dd';
+                                $options[$child['label']] = $child['label'];
                             }
                         }
 
@@ -532,7 +532,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
 
                 $logData = array_merge($data, [
                     'children' => $selectedLabels,
-                    'total_pages_equivalent' => $totalPagesEquivalent,
+                    'total_points_multiplier' => $totalPagesEquivalent,
                     'selected_count' => $selectedCount,
                 ]);
 
@@ -655,7 +655,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
                         $allChildren = $juz->children ?? [];
                         $childrenCount = count($allChildren);
                         $selectedLabels = collect($allChildren)->pluck('label')->toArray();
-                        $totalPagesEquivalent = collect($allChildren)->sum('pages_equivalent');
+                        $totalPagesEquivalent = collect($allChildren)->sum('points_multiplier');
 
                         $memorization->memorized_pages = $childrenCount;
 
@@ -683,7 +683,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
 
                         $logData = array_merge($data, [
                             'children' => $selectedLabels,
-                            'total_pages_equivalent' => $totalPagesEquivalent,
+                            'total_points_multiplier' => $totalPagesEquivalent,
                             'selected_count' => $childrenCount,
                         ]);
 
@@ -723,7 +723,7 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
         }
 
         $selectedCount = $selected->count();
-        $totalPagesEquivalent = (float) $selected->sum('pages_equivalent');
+        $totalPagesEquivalent = (float) $selected->sum('points_multiplier');
 
         return [$selectedCount, $totalPagesEquivalent, $selectedLabels];
     }
@@ -731,21 +731,14 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
     protected function setPointTransation(Memorization $memorization, array $data, ?PageLog $pageLog = null): void
     {
         $isNoPoints = $data['is_no_points'] ?? false;
-        $isSerd = ($data['type'] === 'serd' || $memorization->type === MemorizationType::Serd);
+        // $isSerd = ($data['type'] === 'serd' || $memorization->type === MemorizationType::Serd);
 
-        if ($isSerd) {
-            $setting = Setting::where('key', 'points_per_page_serd')->first();
-            $pointsPerPage = $setting ? (float) $setting->value : 5.0;
-        } else {
-            $type = $data['type'] === 'memorization' ? 'recitation' : $data['type'];
-            $settingKey = $type.'_points_per_page';
-            $setting = Setting::where('key', $settingKey)->first();
-            if (! $setting && $type === 'recitation') {
-                $setting = Setting::where('key', 'points_per_page_regular')->first();
-            }
-            $pointsPerPage = $setting ? (float) $setting->value : 0;
-        }
-
+        
+            // dd($data["type"]);
+        //    dd($data["type"]);
+        $settingKey = 'points_per_page_' . $data["type"];
+        $setting = Setting::where('key', $settingKey)->first();  
+        $pointsPerPage = $setting ? (float) $setting->value : 0;
         $grade = $data['grade'] ?? 'ممتاز';
         $gradeSettingKey = match ($grade) {
             'ممتاز' => 'grade_excellent_percent',
@@ -770,16 +763,16 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
         $repetitionPercent = 100;
         if (in_array($data['type'], ['memorization', 'serd']) && (($memorization->memorization_repetition ?? 0) > 1)) {
             $isRepetition = true;
-            $rePercentSetting = Setting::where('key', 're_recitation_percent')->first();
+            $rePercentSetting = Setting::where('key', 're_memorization_percent')->first();
             $repetitionPercent = $rePercentSetting ? (int) $rePercentSetting->value : 50;
         } elseif ($data['type'] === 'revision' && (($memorization->revision_repetition ?? 0) > 1)) {
             $isRepetition = true;
             $rePercentSetting = Setting::where('key', 're_revision_percent')->first();
             $repetitionPercent = $rePercentSetting ? (int) $rePercentSetting->value : 50;
         }
-
-        // Per-child pages_equivalent sum
-        $totalPagesEquivalent = (float) ($data['total_pages_equivalent'] ?? 0.0);
+        // dd($data);
+        // Per-child points_multiplier sum
+        $totalPagesEquivalent = (float) ($data['total_points_multiplier'] ?? 0.0);
 
         // Student personal multiplier
         $studentMultiplier = $memorization->student->points_multiplier ?? 1.0;
@@ -819,7 +812,8 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
         } elseif ($isNoPoints) {
             $reason .= ' (بدون نقاط)';
         }
-
+        // dd($data);
+        // dd([$basePoints,$gradeScaled,$totalPagesEquivalent,$pointsPerPage,$studentMultiplier,$gradePercent,$gradeScaled,$repetitionPercent]);
         PointTransaction::create([
             'student_id' => $memorization->student_id,
             'teacher_id' => auth()->id() ?? 1,
@@ -833,13 +827,16 @@ class StudentSuraTracker extends Page implements HasActions, HasForms
     protected function setPageLogs(array $data, Memorization $memorization): PageLog
     {
         $pageLog = new PageLog([
-            'student_id' => $memorization->student_id,
-            'curriculum_id' => $memorization->curriculum_id,
-            'type' => in_array($data['type'], ['memorization', 'serd']) ? 'recitation' : $data['type'],
-            'grade' => $data['grade'] ?? null,
-            'children' => $data['children'] ?? [],
-            'count' => $data['selected_count'] ?? count($data['children'] ?? []),
-            'date' => FacadesDate::now()->format('Y-m-d'),
+            'student_id'     => $memorization->student_id,
+            'curriculum_id'  => $memorization->curriculum_id,
+            'type'           => in_array($data['type'], ['memorization', 'serd']) ? 'memorization' : $data['type'],
+            'grade'          => $data['grade'] ?? null,
+            'children'       => $data['children'] ?? [],
+            'count'          => $data['selected_count'] ?? count($data['children'] ?? []),
+            // Sum of each selected child's points_multiplier from the curriculum.
+            // This is the correct weighted page equivalent used in all widgets.
+            'weighted_pages' => $data['total_points_multiplier'] ?? null,
+            'date'           => FacadesDate::now()->format('Y-m-d'),
         ]);
 
         $pageLog->saveQuietly();

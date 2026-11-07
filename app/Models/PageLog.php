@@ -17,7 +17,29 @@ class PageLog extends Model
         return [
             'date' => 'date',
             'children' => 'array',
+            'weighted_pages' => 'float',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (PageLog $pageLog) {
+            if ($pageLog->weighted_pages === null) {
+                if ($pageLog->curriculum_id && ! empty($pageLog->children)) {
+                    $curriculum = $pageLog->curriculum ?: Curriculum::find($pageLog->curriculum_id);
+                    if ($curriculum) {
+                        $sum = $curriculum->totalPagesEquivalentForLabels($pageLog->children);
+                        if ($sum > 0) {
+                            $pageLog->weighted_pages = $sum;
+                        }
+                    }
+                }
+
+                if ($pageLog->weighted_pages === null) {
+                    $pageLog->weighted_pages = (float) ($pageLog->count ?? 0);
+                }
+            }
+        });
     }
 
     public function student(): BelongsTo

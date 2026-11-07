@@ -15,7 +15,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'selected_classroom_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser
 {
@@ -50,6 +50,35 @@ class User extends Authenticatable implements FilamentUser
     public function students()
     {
         return $this->hasMany(Student::class, 'teacher_id');
+    }
+
+    public function classrooms()
+    {
+        return $this->belongsToMany(Classroom::class, 'classroom_users', 'user_id', 'classroom_id')
+            ->withPivot('is_default')->withTimestamps();
+    }
+
+    public function defaultClassroom(): ?Classroom
+    {
+        // Prefer the classroom the teacher explicitly set as default; fall back to any classroom they belong to.
+        return $this->classrooms()->wherePivot('is_default', true)->first()
+            ?? $this->classrooms()->first();
+    }
+
+    /** The classroom the teacher has selected as their current active view. */
+    public function selectedClassroom()
+    {
+        return $this->belongsTo(Classroom::class, 'selected_classroom_id');
+    }
+
+    /**
+     * Resolve the classroom this teacher should be viewing right now.
+     * Priority: explicitly selected → default → first available.
+     */
+    public function activeClassroom(): ?Classroom
+    {
+        return $this->selectedClassroom
+            ?? $this->defaultClassroom();
     }
 
     public function pointTransactions(): HasMany

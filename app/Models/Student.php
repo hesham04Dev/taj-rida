@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Student extends Model implements AuthenticatableContract
 {
@@ -39,6 +40,14 @@ class Student extends Model implements AuthenticatableContract
     {
         return (int) $this->pointTransactions()->sum('amount');
     }
+
+    // // history of all classes
+    // public function classrooms()
+    // {
+    //     return $this->belongsToMany(Classroom::class, 'student_classroom')
+    //         ->withPivot('is_current')
+    //         ->withTimestamps();
+    // }
 
     /**
      * Compute the remaining balance (total earned - already given out).
@@ -103,10 +112,76 @@ class Student extends Model implements AuthenticatableContract
     protected static function booted()
     {
         static::addGlobalScope('teacher', function (Builder $builder) {
-            if (auth()->check() && auth()->user()->role !== 'admin') {
-                $builder->where('teacher_id', auth()->id());
+            if (! auth()->check() || auth()->user()->role === 'admin') {
+                return;
+            }
+
+            $user = auth()->user();
+
+            // If the teacher has chosen a specific classroom, filter by that classroom.
+            if ($user->selected_classroom_id) {
+                $builder->where('classroom_id', $user->selected_classroom_id);
+
+                return;
+            }
+
+            // Fallback: show students from any classroom the teacher belongs to.
+            $classroomIds = $user->classrooms()->pluck('classrooms.id');
+
+            if ($classroomIds->isNotEmpty()) {
+                $builder->whereIn('classroom_id', $classroomIds);
+            } else {
+                // Legacy fallback: teacher_id based filter.
+                $builder->where('teacher_id', $user->id);
             }
         });
+
+        static::saved(function (Student $student) {
+            if (! $student->wasRecentlyCreated && ! $student->wasChanged('classroom_id')) {
+                return;
+            }
+
+            DB::transaction(function () use ($student) {
+                // close any current row that is not the new class
+                DB::table('student_classroom')
+                    ->where('student_id', $student->id)
+                    ->where('is_current', true)
+                    ->where('classroom_id', '!=', $student->classroom_id ?? 0)
+                    ->update(['is_current' => false, 'updated_at' => now()]);
+
+                if (! $student->classroom_id) {
+                    return;
+                }
+
+                $alreadyCurrent = DB::table('student_classroom')
+                    ->where('student_id', $student->id)
+                    ->where('classroom_id', $student->classroom_id)
+                    ->where('is_current', true)->exists();
+
+                if (! $alreadyCurrent) {
+                    DB::table('student_classroom')->insert([
+                        'student_id' => $student->id,
+                        'classroom_id' => $student->classroom_id,
+                        'is_current' => true,
+                        'created_at' => now(), 'updated_at' => now(),
+                    ]);
+                }
+            });
+        });
+    }
+
+    public function classrooms()
+    {
+        return $this->belongsToMany(Classroom::class, 'student_classroom')
+            ->withPivot('is_current')
+            ->withTimestamps()
+            ->orderByPivot('created_at', 'desc');
+    }
+
+    public function classroom()
+    {
+        return $this->belongsTo(Classroom::class);
+
     }
 
     public function dawaras(): BelongsToMany

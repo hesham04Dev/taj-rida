@@ -38,7 +38,7 @@ class Curriculum extends Model
     }
 
     /**
-     * Returns the total pages_equivalent for a given list of child labels.
+     * Returns the total points_multiplier for a given list of child labels.
      *
      * @param  array<string>  $selectedLabels
      */
@@ -50,6 +50,6 @@ class Curriculum extends Model
 
         return collect($this->children)
             ->whereIn('label', $selectedLabels)
-            ->sum('pages_equivalent');
+            ->sum('points_multiplier');
     }
 }

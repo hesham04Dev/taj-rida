@@ -7,6 +7,7 @@ use App\Models\Student;
 use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\DB;
 
 class TeacherStatsOverview extends BaseWidget
 {
@@ -14,38 +15,36 @@ class TeacherStatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        // تحديد هوية الأستاذ إذا لم يكن مديراً
-        $teacherId = auth()->user()->role !== 'admin' ? auth()->id() : null;
+        // تحديد ما إذا كان المستخدم أستاذاً وليس مديراً
+        $isTeacher = auth()->user()?->role !== 'admin';
 
         // تحديد بداية ونهاية الشهر الحالي
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now()->endOfMonth();
 
-        // 1. حساب إجمالي صفحات التسميع (Recitation) لهذا الشهر
-        $monthlyRecitations = PageLog::query()
-            ->where('type', 'recitation')
+        // 1. حساب إجمالي صفحات التسميع (Memorization) لهذا الشهر بالصفحات الموزونة
+        $monthlyMemorizations = (float) PageLog::query()
+            ->where('type', 'memorization')
             ->whereBetween('date', [$startOfMonth, $endOfMonth])
-            ->when($teacherId, function ($query) use ($teacherId) {
-                $query->whereHas('student', fn ($q) => $q->where('teacher_id', $teacherId));
+            ->when($isTeacher, function ($query) {
+                $query->whereHas('student');
             })
-            ->sum('count'); // نستخدم sum لجمع الصفحات وليس count
+            ->sum(DB::raw('COALESCE(weighted_pages, `count`)'));
 
-        // 2. حساب إجمالي صفحات المراجعة (Revision) لهذا الشهر
-        $monthlyRevisions = PageLog::query()
+        // 2. حساب إجمالي صفحات المراجعة (Revision) لهذا الشهر بالصفحات الموزونة
+        $monthlyRevisions = (float) PageLog::query()
             ->where('type', 'revision')
             ->whereBetween('date', [$startOfMonth, $endOfMonth])
-            ->when($teacherId, function ($query) use ($teacherId) {
-                $query->whereHas('student', fn ($q) => $q->where('teacher_id', $teacherId));
+            ->when($isTeacher, function ($query) {
+                $query->whereHas('student');
             })
-            ->sum('count');
+            ->sum(DB::raw('COALESCE(weighted_pages, `count`)'));
 
-        // 3. عدد الطلاب الإجمالي المرتبطين بهذا الأستاذ أو الكل للمدير
-        $totalStudents = Student::query()
-            ->when($teacherId, fn ($q) => $q->where('teacher_id', $teacherId))
-            ->count();
+        // 3. عدد الطلاب الإجمالي المرتبطين بهذا الأستاذ (وفق الحلقة المحددة) أو الكل للمدير
+        $totalStudents = Student::query()->count();
 
         return [
-            Stat::make('صفحات التسميع (الشهر)', number_format($monthlyRecitations, 1))
+            Stat::make('صفحات التسميع (الشهر)', number_format($monthlyMemorizations, 1))
                 ->description('إجمالي صفحات الحفظ المنجزة')
                 ->descriptionIcon('heroicon-m-book-open')
                 ->color('success')

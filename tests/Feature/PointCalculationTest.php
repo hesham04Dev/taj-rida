@@ -9,8 +9,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('calculates points correctly for recitation based on settings', function () {
-    Setting::updateOrCreate(['key' => 'recitation_points_per_page'], ['value' => '10']);
+it('calculates points correctly for memorization based on settings', function () {
+    Setting::updateOrCreate(['key' => 'points_per_page_memorization'], ['value' => '10']);
 
     $teacher = User::factory()->create(['role' => 'teacher']);
     $student = Student::factory()->create([
@@ -22,7 +22,7 @@ it('calculates points correctly for recitation based on settings', function () {
 
     $pageLog = PageLog::create([
         'student_id' => $student->id,
-        'type' => 'recitation',
+        'type' => 'memorization',
         'from_page' => '1',
         'to_page' => 3.0,
         'count' => 2.0,

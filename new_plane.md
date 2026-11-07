@@ -18,11 +18,11 @@
 
     Suras: (id, name, ayas_count). بيانات ثابتة لـ 114 سورة.
 
-    Recitations (التسميع): (id, student_id [FK], sura_id [FK], from_aya, to_aya, repetition_number, grade [default: Good], date).
+    Memorizations (التسميع): (id, student_id [FK], sura_id [FK], from_aya, to_aya, repetition_number, grade [default: Good], date).
 
     Revisions (المراجعة): (id, student_id [FK], sura_id [FK], from_aya, to_aya, repetition_number, grade [default: Good], date).
 
-    PageLogs: (id, student_id [FK], type [recitation, revision], count [float: e.g. 1.5], date).
+    PageLogs: (id, student_id [FK], type [memorization, revision], count [float: e.g. 1.5], date).
 
     Attendance: (id, student_id [FK], date, is_present [boolean]).
 
@@ -30,14 +30,14 @@
 
     StudentNotes (الشكاوى): (id, student_id [FK], description, rating [1-10], date).
 
-    Settings: (id, key [unique], value). المفاتيح المطلوبة: recitation_points_per_page, revision_points_per_page, attendance_points, absence_penalty.
+    Settings: (id, key [unique], value). المفاتيح المطلوبة: points_per_page_memorization, points_per_page_revision, attendance_points, absence_penalty.
 
 3. منطق العمليات (Business Logic)
 أ. نظام النقاط التفاعلي:
 
     عند تسجيل صفحة تسميع (مثلاً 1.0) في PageLog:
 
-        يتم جلب recitation_points_per_page من الإعدادات.
+        يتم جلب points_per_page_memorization من الإعدادات.
 
         العملية: Points = SettingsValue * Student->points_multiplier.
 

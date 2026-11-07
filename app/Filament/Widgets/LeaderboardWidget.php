@@ -3,11 +3,11 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Student;
-use Carbon\Carbon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class LeaderboardWidget extends BaseWidget
 {
@@ -20,33 +20,38 @@ class LeaderboardWidget extends BaseWidget
 
     public function table(Table $table): Table
     {
-        // Define the start and end of the current week once for consistency
-        // $startOfWeek = Carbon::now()->startOfWeek();
-        // $endOfWeek = Carbon::now()->endOfWeek();
-
-        // last seven days rather than strict week data
+        // Last seven days rather than strict calendar-week boundaries
         $endOfWeek = now()->endOfDay();
         $startOfWeek = now()->subDays(7)->startOfDay();
 
-        // Check if the user is not admin to filter their students only
-        $teacherId = auth()->user()->role !== 'admin' ? auth()->id() : null;
+        $startDate = $startOfWeek->toDateString();
+        $endDate = $endOfWeek->toDateString();
 
         return $table
             ->query(
                 Student::query()
-                    ->when($teacherId, fn ($q) => $q->where('teacher_id', $teacherId))
-                    // Calculate virtual columns using withSum
+                    ->select('students.*')
+                    // Weekly points — already stored as final values, no multiplier needed
                     ->withSum(['pointTransactions as weekly_points' => function ($query) use ($startOfWeek, $endOfWeek) {
                         $query->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
                     }], 'amount')
-                    ->withSum(['pageLogs as weekly_recitation' => function ($query) use ($startOfWeek, $endOfWeek) {
-                        $query->where('type', 'recitation')
-                            ->whereBetween('date', [$startOfWeek, $endOfWeek]);
-                    }], 'count')
-                    ->withSum(['pageLogs as weekly_revision' => function ($query) use ($startOfWeek, $endOfWeek) {
-                        $query->where('type', 'revision')
-                            ->whereBetween('date', [$startOfWeek, $endOfWeek]);
-                    }], 'count')
+                    // Weekly memorization: sum weighted_pages (= SUM of each child's points_multiplier).
+                    // Falls back to raw count for legacy rows that pre-date the weighted_pages column.
+                    ->addSelect(DB::raw(
+                        "(SELECT COALESCE(SUM(COALESCE(pl.weighted_pages, pl.`count`)), 0)
+                          FROM page_logs pl
+                          WHERE pl.student_id = students.id
+                            AND pl.type = 'memorization'
+                            AND pl.date BETWEEN '{$startDate}' AND '{$endDate}') as weekly_memorization"
+                    ))
+                    // Weekly revision: same logic
+                    ->addSelect(DB::raw(
+                        "(SELECT COALESCE(SUM(COALESCE(pl.weighted_pages, pl.`count`)), 0)
+                          FROM page_logs pl
+                          WHERE pl.student_id = students.id
+                            AND pl.type = 'revision'
+                            AND pl.date BETWEEN '{$startDate}' AND '{$endDate}') as weekly_revision"
+                    ))
             )
             // Sets the default sorting to highest points
             ->defaultSort('weekly_points', 'desc')
@@ -61,32 +66,23 @@ class LeaderboardWidget extends BaseWidget
                     ->badge()
                     ->color('warning')
                     ->icon('heroicon-m-star')
-                    // Custom sort logic for virtual column
-                    ->sortable(query: function (Builder $query, string $direction): Builder {
-                        return $query->orderBy('weekly_points', $direction);
-                    })
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy('weekly_points', $direction))
                     ->formatStateUsing(fn ($state) => $state ?? 0),
 
-                Tables\Columns\TextColumn::make('weekly_recitation')
+                Tables\Columns\TextColumn::make('weekly_memorization')
                     ->label('الحفظ (صفحات)')
                     ->badge()
                     ->color('success')
-                    // Custom sort logic for virtual column
-                    ->sortable(query: function (Builder $query, string $direction): Builder {
-                        return $query->orderBy('weekly_recitation', $direction);
-                    })
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy('weekly_memorization', $direction))
                     ->formatStateUsing(fn ($state) => round($state ?? 0, 1)),
 
                 Tables\Columns\TextColumn::make('weekly_revision')
                     ->label('المراجعة (صفحات)')
                     ->badge()
                     ->color('info')
-                    // Custom sort logic for virtual column
-                    ->sortable(query: function (Builder $query, string $direction): Builder {
-                        return $query->orderBy('weekly_revision', $direction);
-                    })
+                    ->sortable(query: fn (Builder $query, string $direction) => $query->orderBy('weekly_revision', $direction))
                     ->formatStateUsing(fn ($state) => round($state ?? 0, 1)),
             ])
-            ->paginated([5, 10, 25]); // Added pagination for better performance
+            ->paginated([5, 10, 25]);
     }
 }

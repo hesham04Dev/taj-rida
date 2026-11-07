@@ -63,7 +63,7 @@ erDiagram
     PAGE_LOG {
         bigint id PK
         bigint student_id FK
-        string type "recitation / revision"
+        string type "memorization / revision"
         float count "e.g., 3.5"
         date date
     }

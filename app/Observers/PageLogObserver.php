@@ -36,9 +36,9 @@ class PageLogObserver
             return;
         }
 
-        $settingKey = $pageLog->type === 'recitation' ? 'recitation_points_per_page' : 'revision_points_per_page';
+        $settingKey = $pageLog->type === 'memorization' ? 'points_per_page_memorization' : 'points_per_page_revision';
         $setting = Setting::where('key', $settingKey)->first();
-        $pointsPerPage = $setting ? (float) $setting->value : ($pageLog->type === 'recitation' ? 10.0 : 5.0);
+        $pointsPerPage = $setting ? (float) $setting->value : ($pageLog->type === 'memorization' ? 10.0 : 5.0);
 
         $multiplier = (float) ($student->points_multiplier ?? 1.0);
         $amount = (int) round($pointsPerPage * $pageLog->count * $multiplier);
@@ -48,7 +48,7 @@ class PageLogObserver
                 'student_id' => $pageLog->student_id,
                 'teacher_id' => auth()->id() ?? $student->teacher_id ?? 1,
                 'amount' => $amount,
-                'reason' => $pageLog->type === 'recitation' ? 'تسميع' : 'مراجعة',
+                'reason' => $pageLog->type === 'memorization' ? 'تسميع' : 'مراجعة',
                 'sura_id' => $pageLog->sura_id,
                 'page_log_id' => $pageLog->id,
             ]);

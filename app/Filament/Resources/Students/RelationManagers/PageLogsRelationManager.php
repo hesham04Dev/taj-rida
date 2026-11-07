@@ -31,7 +31,7 @@ class PageLogsRelationManager extends RelationManager
                 Forms\Components\Select::make('type')
                     ->label('النوع')
                     ->options([
-                        'recitation' => 'تسميع',
+                        'memorization' => 'تسميع',
                         'revision' => 'مراجعة',
                         'test' => 'اختبار',
                     ])
@@ -53,6 +53,11 @@ class PageLogsRelationManager extends RelationManager
                     ->label('عدد الصفحات/السور')
                     ->numeric()
                     ->required(),
+                Forms\Components\TextInput::make('weighted_pages')
+                    ->label('الصفحات الموزونة')
+                    ->numeric()
+                    ->nullable()
+                    ->helperText('اتركه فارغاً ليتم حسابه تلقائياً بناءً على مضاعف الجزء'),
                 Forms\Components\DatePicker::make('date')
                     ->label('التاريخ')
                     ->default(now())
@@ -69,14 +74,14 @@ class PageLogsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('type')
                     ->label('النوع')
                     ->formatStateUsing(fn ($state) => match ($state) {
-                        'recitation' => 'تسميع',
+                        'memorization' => 'تسميع',
                         'revision' => 'مراجعة',
                         'test' => 'اختبار',
                         default => $state,
                     })
                     ->badge()
                     ->color(fn ($state) => match ($state) {
-                        'recitation' => 'success',
+                        'memorization' => 'success',
                         'revision' => 'info',
                         'test' => 'warning',
                         default => 'gray',
@@ -87,6 +92,10 @@ class PageLogsRelationManager extends RelationManager
                     ->formatStateUsing(fn ($state) => is_array($state) ? implode('، ', $state) : $state)
                     ->wrap(),
                 Tables\Columns\TextColumn::make('count')->label('العدد'),
+                Tables\Columns\TextColumn::make('weighted_pages')
+                    ->label('الصفحات الموزونة')
+                    ->numeric(1)
+                    ->placeholder(fn ($record) => $record->count),
                 Tables\Columns\TextColumn::make('date')->label('التاريخ')->date(),
             ])
             ->filters([])

@@ -88,10 +88,10 @@ x make it production ready
 
 
 
-todo hide the dawara from non admin
-            // very important i want a way to insert sql in admin but just me with a password or  somthing to prevent other from insert un wanted sql
+done todo hide the dawara from non admin
+           done // very important i want a way to insert sql in admin but just me with a password or  done somthing to prevent other from insert un wanted sql
 
-            // very important i want add classes to the dawara so student is linked to a class and the teacher can teach multible classes and can select in witch class he is (in setting we set the teacher can teach any class or some classes)
+           done // very important i want add classes to the dawara so student is linked to a class and the done teacher can teach multible classes and can select in witch class he is (in setting we set done the teacher can teach any class or some classes)
 
 
 - [ ] we need a location to set the masjed name and logo  in the settings page
@@ -99,140 +99,22 @@ todo hide the dawara from non admin
 
 
 
+
+
+- [ ] add classes and teacher in the seeder 
+- [ ] fix the bug in the leaderbord dialog we have the pages count is wrong (it count the pages without * with the point mulitplier as we want)
+
+
 - [ ] AI NEW SHAPE (NEED REVISION)
 - [x] ازالة عبارة قرض حسن من التطبيق
-Here is the completely restructured, clean, and categorized version of your TODO.md file. Every single item, note, and Arabic comment from your original draft has been preserved and organized logically.
-📋 Application Roadmap & TODO List
-📌 Pending Tasks [ ]
-🏛️ 1. Dawara (Session) & Class Management System
+- [ ] شوف شو مشكلة الاجزاء المحفوظة ما عم تعرض شي ابدا
 
-    [ ] Dawara Lifecycle & Termination Architecture:
 
-        Create dawaras table and implement term closure logic.
+- [ ] see if this also in the production if yes it should be fixed (how to reproduce this error just use the system each time its show this error) or when try to edit student not very sure what trigger it 
+Error
+app/Filament/Resources/Students/RelationManagers/MemorizationsRelationManager.php:146
 
-        Generate end-of-dawara student logs, calculate final grades/totals, lock completed dawaras, and start a new active dawara.
+Call to a member function isInCurrentDawara() on null
 
-        Keep historical points audit trails and memorization records intact across sessions.
 
-    [ ] Dawara Access Control: Hide Dawara management resources from non-admin users.
-
-    [ ] Class Structure Refactor (High Priority):
-
-        Unlink students from direct teacher assignment and link them to Classes.
-
-        Allow teachers to teach multiple classes.
-
-        Add configuration settings to define whether a teacher can teach any class or specific assigned classes.
-
-📖 2. Surah Tracker, Memorization & Page Logs
-
-    [ ] Multi-Select Surah Tracker: Add multi-select capability to the surah tracker so multiple full surahs can be entered at once (automatically taking total ayas from surah metadata).
-
-    [ ] Partial / Percentage Memorization:
-
-        Add percentage support for partially memorized items (e.g., student memorizes 60% of Surah Amma).
-
-        Store percentage in DB and ensure re-memorizing awards points only for the remaining portion (e.g., remaining 40%).
-
-    [ ] Page Log Overhaul & Fixes:
-
-        Update page log logic to align with the new unified memorization table structure.
-
-        Restrict page log views strictly to entries from the memorization table.
-
-        Restore and fix the page_log relationships.
-
-        Change background color of completed/tested pages in the student tracker to gray.
-
-    [ ] Re-Memorization & Unit Hierarchy Display (Arabic Notes):
-
-        Display parent and child units clearly in the "needs re-memorization" UI (e.g., Page 5 (Juz 1) or Page 5 (Surah Al-Baqarah) / Section 2 (Juz Amma)).
-
-        Fix the missing grade display next to recited items.
-
-    [ ] Points Audit & Relational Recalculation: Add real relational links between memorization and points transactions so point values automatically update if memorization quantities are edited.
-
-💰 3. Financials, Gifts & Exchange Rates
-
-    [ ] Gifts & Points Currency Exchange Calculator:
-
-        Add admin setting for Points-to-Money exchange rate.
-
-        Build dashboard widget displaying total points, exchange rate, estimated monetary value, and gift redemption balance.
-
-🛡️ 4. Admin Utilities & System Security
-
-    [ ] Secure Admin SQL Executor (High Priority):
-
-        Build an admin-only endpoint to execute raw SQL queries.
-
-        Protect with a strong, in-file password constraint.
-
-        Ensure no Filament menu navigation link exists for this tool (accessible via hidden direct URL only).
-
-⚙️ 5. Integrations, Customization & Settings
-
-    [ ] Masjid Branding Settings: Add location setting fields for Masjid Name and Logo in the Settings page.
-
-    [ ] WhatsApp API Integration: Integrate WhatsApp API for automated progress, attendance, and parent messaging.
-
-    [ ] Knowledge Base Module: Add and populate an internal knowledge base / documentation hub.
-
-    [ ] Dynamic Custom Fields: Support user-defined custom fields across core models/tables.
-
-    [ ] Custom Markdown Pages: Add custom documentation/resource pages with custom titles and markdown content links.
-
-    [ ] System Typography: Update system typography to IBM Plex Sans Arabic for design testing.
-
-✅ Completed Tasks [x]
-⚡ Core Application & UI Performance
-
-    [x] Optimized application performance for fast navigation and execution.
-
-    [x] Full Arabic localization across the entire application interface.
-
-    [x] Tracker design and general UI/UX visual updates.
-
-    [x] Application code cleanup and production deployment readiness.
-
-📖 Memorization, Revision & Testing (Unified Architecture)
-
-    [x] Consolidated revision table directly into the memorization table.
-
-    [x] Added repetition tracking and last degree columns for both memorization and revision within the single table.
-
-    [x] Added testing fields to memorization records (test_grade, test_counts, last_test_name, update_date, is_need_rememorisation).
-
-    [x] Added multi-select surah memorization with automatic from_aya to to_aya count detection.
-
-    [x] Added percentage display for incomplete/partial surahs.
-
-    [x] Calculated points for memorized, tested, and revised pages.
-
-    [x] Made point allocation optional during test entries and added a dedicated test_points field.
-
-    [x] Prevented duplicate points allocation (points awarded strictly for newly memorized pages beyond memorized_pages threshold).
-
-    [x] Enabled cumulative memorization history visibility across all Dawaras while keeping points isolated per Dawara.
-
-    [x] Added support for Sard (سرد) and multiple customizable memorization types with distinct point values.
-
-👥 Student & Attendance Management
-
-    [x] Scoped the "set absence" action strictly to students belonging to the logged-in teacher.
-
-    [x] Added a quick subtract button ("Rem Points" -ve) in the give points interface.
-
-💰 Financials & Debtor Management
-
-    [x] Added Budget management system.
-
-    [x] Added Points Card feature.
-
-    [x] Restricted Debitor resource access strictly to admin users.
-
-🔄 Dawara Middleware & Safety
-
-    [x] Redirect gracefully to Dawara setup screen when no active Dawara is set (preventing app crashes).
-
-    [x] Enforced single active Dawara rule (automatically deactivating other active Dawaras when a new active Dawara is created).
+- [ ] create a way to migrate from the production version to this version 3.3.0

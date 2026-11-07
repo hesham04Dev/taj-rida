@@ -1,6 +1,6 @@
 # Goal Description
 
-Develop the "Taj Al-Ridha" (تاج الرضا) system for managing Quran memorization circles. The project will be built uniquely using the **TALL Stack (Tailwind, Alpine.js, Laravel, Livewire) inside a Filament environment**. The main goals are to have a very fast, responsive interface for teachers to manage students' attendance and recitations, and a comprehensive admin panel.
+Develop the "Taj Al-Ridha" (تاج الرضا) system for managing Quran memorization circles. The project will be built uniquely using the **TALL Stack (Tailwind, Alpine.js, Laravel, Livewire) inside a Filament environment**. The main goals are to have a very fast, responsive interface for teachers to manage students' attendance and memorizations, and a comprehensive admin panel.
 
 ## User Review Required
 
@@ -18,12 +18,12 @@ I will create migrations, models, factories, and seeders for the following entit
 - Fields: `teacher_id` (FK), `name`, `birthdate` (replacing `age` as per DB.md), `points_multiplier` (float default 1.0), `father_name`, `father_phone`, `more_details`, `notes`.
 #### [NEW] `create_suras_table.php` / `Sura.php`
 - Fields: `name`, `ayas_count`. (Seeded with 114 Suras).
-#### [NEW] `create_recitations_table.php` / `Recitation.php`
+#### [NEW] `create_memorizations_table.php` / `Memorization.php`
 - Fields: `student_id` (FK), `sura_id` (FK), `from_aya`, `to_aya`, `grade`, `date`.
 #### [NEW] `create_revisions_table.php` / `Revision.php`
-- Fields: Same as `Recitation`.
+- Fields: Same as `Memorization`.
 #### [NEW] `create_page_logs_table.php` / `PageLog.php`
-- Fields: `student_id` (FK), `type` (recitation/revision), `count` (float), `date`.
+- Fields: `student_id` (FK), `type` (memorization/revision), `count` (float), `date`.
 #### [NEW] `create_attendances_table.php` / `Attendance.php`
 - Fields: `student_id` (FK), `date`, `is_present` (boolean).
 #### [NEW] `create_point_transactions_table.php` / `PointTransaction.php`
@@ -38,7 +38,7 @@ I will create migrations, models, factories, and seeders for the following entit
 ### Business Logic (Observers)
 
 #### [NEW] `PageLogObserver.php`
-- Listens to `created` / `updated` / `deleted` events on `PageLog` to calculate points based on `Settings` (e.g. `recitation_points_per_page`) multiplied by `Student->points_multiplier` and automatically create/modify a `PointTransaction`.
+- Listens to `created` / `updated` / `deleted` events on `PageLog` to calculate points based on `Settings` (e.g. `points_per_page_memorization`) multiplied by `Student->points_multiplier` and automatically create/modify a `PointTransaction`.
 #### [NEW] `AttendanceObserver.php`
 - Listens to `Attendance` changes to add or subtract points according to `attendance_points` or `absence_penalty` from `Settings`.
 #### [MODIFY] `Student.php`
@@ -49,7 +49,7 @@ I will create migrations, models, factories, and seeders for the following entit
 ### Filament Resources
 
 #### [NEW] `StudentResource.php`
-- To manage student profiles. Will include extensive RelationManagers to view history of points, recitations, revisions, and attendance.
+- To manage student profiles. Will include extensive RelationManagers to view history of points, memorizations, revisions, and attendance.
 #### [NEW] `SettingResource.php` (Admin Only)
 - Manage dynamic settings for points values.
 #### [NEW] `UserResource.php` (Admin Only)
@@ -66,7 +66,7 @@ I will create migrations, models, factories, and seeders for the following entit
 - A specific Livewire component inside the Dashboard to render students as cards.
 - **Features:** 
   - Toggle Attendance quickly.
-  - Quick `+` or `-` buttons for recitation/revision pages (adjusts `PageLog` directly).
+  - Quick `+` or `-` buttons for memorization/revision pages (adjusts `PageLog` directly).
   - Modal button for manual 'Grant Points'.
   - Modal button for manual 'Deduct Points'.
 

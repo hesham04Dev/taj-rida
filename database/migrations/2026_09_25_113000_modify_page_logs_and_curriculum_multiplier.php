@@ -19,7 +19,7 @@ return new class extends Migration
             if (is_array($children)) {
                 foreach ($children as &$child) {
                     if (array_key_exists('points_multiplier', $child)) {
-                        $child['pages_equivalent'] = $child['points_multiplier'];
+                        $child['points_multiplier'] = $child['points_multiplier'];
                         unset($child['points_multiplier']);
                     }
                 }
@@ -62,9 +62,9 @@ return new class extends Migration
             $children = json_decode($curriculum->children, true);
             if (is_array($children)) {
                 foreach ($children as &$child) {
-                    if (array_key_exists('pages_equivalent', $child)) {
-                        $child['points_multiplier'] = $child['pages_equivalent'];
-                        unset($child['pages_equivalent']);
+                    if (array_key_exists('points_multiplier', $child)) {
+                        $child['points_multiplier'] = $child['points_multiplier'];
+                        unset($child['points_multiplier']);
                     }
                 }
                 DB::table('curriculum')

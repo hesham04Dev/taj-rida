@@ -95,4 +95,9 @@ class Dawara extends Model
             static::clearCurrentCache();
         });
     }
+
+    public function classrooms()
+    {
+        return $this->hasMany(Classroom::class);
+    }
 }
